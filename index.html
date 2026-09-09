@@ -1,0 +1,586 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Focus — Study & Fitness</title>
+
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =========================
+         APP HEADER
+    ========================== -->
+
+    <header class="app-header">
+
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">FOCUS</span>
+        </div>
+
+        <nav class="main-nav">
+            <button class="nav-btn active" data-page="home">
+                Home
+            </button>
+
+            <button class="nav-btn" data-page="study">
+                📚 Study
+            </button>
+
+            <button class="nav-btn" data-page="workout">
+                🏋️ Workout
+            </button>
+
+            <button class="nav-btn" data-page="achievements">
+                🏆 Achievements
+            </button>
+
+            <button class="nav-btn" data-page="analytics">
+                📊 Analytics
+            </button>
+        </nav>
+
+        <div class="header-actions">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+                🌙
+            </button>
+
+            <button class="profile-btn" id="profileButton">
+                👤
+            </button>
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN APP
+    ========================== -->
+
+    <main id="app">
+
+        <!-- =========================
+             HOME PAGE
+        ========================== -->
+
+        <section id="homePage" class="page active">
+
+            <div class="hero">
+
+                <p class="greeting" id="greeting">
+                    Good morning 👋
+                </p>
+
+                <h1>
+                    What are we<br>
+                    <span>working on today?</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Focus your mind. Move your body. Build yourself.
+                </p>
+
+            </div>
+
+
+            <!-- MODE SELECTION -->
+
+            <section class="mode-selection">
+
+                <button class="mode-card study-card" data-mode="study">
+
+                    <div class="mode-icon">
+                        📚
+                    </div>
+
+                    <div class="mode-content">
+                        <h2>Study Mode</h2>
+
+                        <p>
+                            Focus, learn and get things done.
+                        </p>
+
+                        <span class="mode-features">
+                            Pomodoro • Tasks • Music • Analytics
+                        </span>
+                    </div>
+
+                    <span class="mode-arrow">
+                        →
+                    </span>
+
+                </button>
+
+
+                <button class="mode-card workout-card" data-mode="workout">
+
+                    <div class="mode-icon">
+                        🏋️
+                    </div>
+
+                    <div class="mode-content">
+                        <h2>Workout Mode</h2>
+
+                        <p>
+                            Train hard and become stronger.
+                        </p>
+
+                        <span class="mode-features">
+                            Plans • Exercises • Timer • Records
+                        </span>
+                    </div>
+
+                    <span class="mode-arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </section>
+
+
+            <!-- =========================
+                 TODAY'S SNAPSHOT
+            ========================== -->
+
+            <section class="dashboard-section">
+
+                <div class="section-heading">
+                    <div>
+                        <span class="section-label">
+                            TODAY
+                        </span>
+
+                        <h2>
+                            Your progress
+                        </h2>
+                    </div>
+
+                    <span id="currentDate">
+                        September 9, 2026
+                    </span>
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span class="stat-icon">📚</span>
+
+                        <div>
+                            <span class="stat-label">
+                                Study Time
+                            </span>
+
+                            <strong id="studyTime">
+                                0h 00m
+                            </strong>
+                        </div>
+                    </div>
+
+
+                    <div class="stat-card">
+                        <span class="stat-icon">⏱️</span>
+
+                        <div>
+                            <span class="stat-label">
+                                Pomodoros
+                            </span>
+
+                            <strong id="pomodoroCount">
+                                0
+                            </strong>
+                        </div>
+                    </div>
+
+
+                    <div class="stat-card">
+                        <span class="stat-icon">🏋️</span>
+
+                        <div>
+                            <span class="stat-label">
+                                Workout
+                            </span>
+
+                            <strong id="workoutTime">
+                                0m
+                            </strong>
+                        </div>
+                    </div>
+
+
+                    <div class="stat-card">
+                        <span class="stat-icon">🔥</span>
+
+                        <div>
+                            <span class="stat-label">
+                                Streak
+                            </span>
+
+                            <strong id="streak">
+                                0 days
+                            </strong>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 DAILY PROGRESS
+            ========================== -->
+
+            <section class="dashboard-section">
+
+                <div class="section-heading">
+                    <div>
+                        <span class="section-label">
+                            DAILY GOALS
+                        </span>
+
+                        <h2>
+                            Keep going
+                        </h2>
+                    </div>
+                </div>
+
+
+                <div class="goal-list">
+
+                    <div class="goal-item">
+
+                        <div class="goal-info">
+                            <span>📚 Study</span>
+                            <strong id="studyGoalText">
+                                0 / 3 hours
+                            </strong>
+                        </div>
+
+                        <div class="progress-track">
+                            <div
+                                class="progress-bar"
+                                id="studyProgress"
+                                style="width: 0%">
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="goal-item">
+
+                        <div class="goal-info">
+                            <span>⏱️ Pomodoros</span>
+                            <strong id="pomodoroGoalText">
+                                0 / 8
+                            </strong>
+                        </div>
+
+                        <div class="progress-track">
+                            <div
+                                class="progress-bar"
+                                id="pomodoroProgress"
+                                style="width: 0%">
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="goal-item">
+
+                        <div class="goal-info">
+                            <span>🏋️ Workout</span>
+                            <strong id="workoutGoalText">
+                                0 / 45 minutes
+                            </strong>
+                        </div>
+
+                        <div class="progress-track">
+                            <div
+                                class="progress-bar"
+                                id="workoutProgress"
+                                style="width: 0%">
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 PRIORITY TASKS
+            ========================== -->
+
+            <section class="dashboard-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-label">
+                            PRIORITIES
+                        </span>
+
+                        <h2>
+                            Tasks that matter
+                        </h2>
+                    </div>
+
+                    <button
+                        class="text-btn"
+                        data-page="study">
+                        View all →
+                    </button>
+
+                </div>
+
+
+                <div class="priority-list" id="priorityList">
+
+                    <div class="empty-state">
+
+                        <span>🎯</span>
+
+                        <p>
+                            No priority tasks yet.
+                        </p>
+
+                        <button
+                            class="secondary-btn"
+                            data-page="study">
+                            Add a task
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 MOTIVATIONAL QUOTE
+            ========================== -->
+
+            <section class="quote-card">
+
+                <span class="quote-icon">
+                    ✦
+                </span>
+
+                <blockquote id="dailyQuote">
+                    "Small progress is still progress."
+                </blockquote>
+
+                <span class="quote-category">
+                    DAILY MOTIVATION
+                </span>
+
+            </section>
+
+        </section>
+
+
+        <!-- =========================
+             STUDY PAGE
+        ========================== -->
+
+        <section id="studyPage" class="page">
+
+            <div class="page-header">
+
+                <div>
+                    <span class="section-label">
+                        📚 STUDY MODE
+                    </span>
+
+                    <h1>
+                        Time to focus.
+                    </h1>
+
+                    <p>
+                        Learn something today that your future self will thank you for.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- Study page content will be built next -->
+
+            <div class="coming-soon">
+                <span>⏱️</span>
+
+                <h2>
+                    Pomodoro coming next
+                </h2>
+
+                <p>
+                    This section will contain the Pomodoro timer,
+                    subjects, tasks, music and refresh breaks.
+                </p>
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             WORKOUT PAGE
+        ========================== -->
+
+        <section id="workoutPage" class="page">
+
+            <div class="page-header">
+
+                <div>
+                    <span class="section-label">
+                        🏋️ WORKOUT MODE
+                    </span>
+
+                    <h1>
+                        Let's get stronger.
+                    </h1>
+
+                    <p>
+                        Show up. Put in the work. Get better.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- Workout page content will be built next -->
+
+            <div class="coming-soon">
+                <span>💪</span>
+
+                <h2>
+                    Workout system coming next
+                </h2>
+
+                <p>
+                    This section will contain workout plans,
+                    exercise demonstrations, timers and personal records.
+                </p>
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ACHIEVEMENTS PAGE
+        ========================== -->
+
+        <section id="achievementsPage" class="page">
+
+            <div class="page-header">
+
+                <div>
+                    <span class="section-label">
+                        🏆 ACHIEVEMENTS
+                    </span>
+
+                    <h1>
+                        Earn your badges.
+                    </h1>
+
+                    <p>
+                        Every small win counts.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="achievement-preview">
+
+                <div class="achievement-badge">
+                    🔥
+                </div>
+
+                <h2>
+                    Your achievements will appear here.
+                </h2>
+
+                <p>
+                    Complete study sessions, workouts and goals
+                    to unlock expressive badges and animations.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ANALYTICS PAGE
+        ========================== -->
+
+        <section id="analyticsPage" class="page">
+
+            <div class="page-header">
+
+                <div>
+                    <span class="section-label">
+                        📊 ANALYTICS
+                    </span>
+
+                    <h1>
+                        See your progress.
+                    </h1>
+
+                    <p>
+                        Understand how you spend your time and track your growth.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="analytics-preview">
+
+                <div>
+                    📚
+                    <strong>Study Analytics</strong>
+                    <span>Coming soon</span>
+                </div>
+
+                <div>
+                    🏋️
+                    <strong>Workout Analytics</strong>
+                    <span>Coming soon</span>
+                </div>
+
+                <div>
+                    🥇
+                    <strong>Personal Records</strong>
+                    <span>Coming soon</span>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================== -->
+
+    <script src="script.js"></script>
+
+</body>
+</html>
+```
