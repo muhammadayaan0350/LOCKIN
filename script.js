@@ -1,3016 +1,257 @@
-```css
+```javascript
 /* =========================================================
-   FOCUS — STYLE SYSTEM
+   FOCUS — SCRIPT
    Study. Train. Grow.
 ========================================================= */
 
-
-/* =========================================================
-   RESET
-========================================================= */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    min-height: 100vh;
-    font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-    overflow-x: hidden;
-}
-
-button,
-input,
-select {
-    font: inherit;
-}
-
-button {
-    border: 0;
-    cursor: pointer;
-}
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-    outline: 3px solid rgba(99, 102, 241, 0.35);
-    outline-offset: 3px;
-}
-
-a {
-    color: inherit;
-    text-decoration: none;
-}
+"use strict";
 
 
 /* =========================================================
-   GLOBAL VARIABLES
+   DOM HELPERS
 ========================================================= */
 
-:root {
-    --black: #050507;
-    --dark: #0a0a0f;
-    --dark-card: #111118;
-    --dark-card-2: #17171f;
-    --dark-border: rgba(255, 255, 255, 0.1);
-    --dark-text: #f7f7fb;
-    --dark-muted: #9999a8;
-
-    --study-bg: #f5f7fb;
-    --study-surface: #ffffff;
-    --study-surface-soft: #eef2f8;
-    --study-border: #dfe5ee;
-    --study-text: #172033;
-    --study-muted: #6d7688;
-    --study-accent: #6366f1;
-    --study-accent-2: #8b5cf6;
-    --study-success: #16a34a;
-    --study-warning: #f59e0b;
-    --study-danger: #ef4444;
-
-    --workout-bg: #07080b;
-    --workout-surface: #101217;
-    --workout-surface-2: #161920;
-    --workout-border: rgba(255, 255, 255, 0.1);
-    --workout-text: #f5f5f5;
-    --workout-muted: #969ba8;
-    --workout-accent: #ff5a36;
-    --workout-accent-2: #ff9a3d;
-    --workout-success: #22c55e;
-    --workout-danger: #ef4444;
-
-    --radius-sm: 10px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
-
-    --shadow-sm: 0 5px 20px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 15px 40px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.16);
-
-    --transition-fast: 0.2s ease;
-    --transition: 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-    --transition-slow: 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 
 /* =========================================================
-   MODE SELECTION
+   STORAGE
 ========================================================= */
 
-#modeSelection {
-    position: relative;
-    min-height: 100vh;
-    overflow: hidden;
-    background:
-        radial-gradient(
-            circle at 20% 20%,
-            rgba(99, 102, 241, 0.15),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 80% 75%,
-            rgba(139, 92, 246, 0.13),
-            transparent 30%
-        ),
-        #050507;
-    color: var(--dark-text);
-}
+const STORAGE_KEY = "focusAppState";
 
-.mode-background {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-}
 
-.ambient-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(2px);
-    opacity: 0.45;
-    animation: floatingOrb 12s ease-in-out infinite;
-}
+const defaultState = {
+    user: {
+        name: "Ayaan",
+        level: 1,
+        xp: 0
+    },
 
-.orb-one {
-    width: 300px;
-    height: 300px;
-    top: -120px;
-    left: -80px;
-    background: rgba(99, 102, 241, 0.16);
-}
+    theme: {
+        study: "light",
+        workout: "dark"
+    },
 
-.orb-two {
-    width: 240px;
-    height: 240px;
-    right: 8%;
-    top: 20%;
-    background: rgba(168, 85, 247, 0.12);
-    animation-delay: -4s;
-}
+    currentMode: "selection",
+    currentStudyPage: "study-dashboard",
+    currentWorkoutPage: "workout-dashboard",
 
-.orb-three {
-    width: 340px;
-    height: 340px;
-    bottom: -180px;
-    left: 45%;
-    background: rgba(59, 130, 246, 0.1);
-    animation-delay: -7s;
-}
+    study: {
+        totalMinutes: 0,
+        pomodoros: 0,
+        tasksCompleted: 0,
+        currentSubject: "General",
+        subjects: [
+            "General",
+            "Mathematics",
+            "Physics",
+            "Electronics",
+            "Programming"
+        ]
+    },
 
-@keyframes floatingOrb {
-    0%,
-    100% {
-        transform: translate3d(0, 0, 0) scale(1);
+    goals: {
+        studyMinutes: 120,
+        pomodoros: 4,
+        tasks: 5
+    },
+
+    tasks: [],
+
+    routines: [],
+
+    habits: {},
+
+    workout: {
+        count: 0,
+        totalMinutes: 0,
+        totalSets: 0,
+        streak: 0,
+        bestStreak: 0,
+        longestWorkout: 0,
+        mostSets: 0
+    },
+
+    records: {
+        studyMinutes: 0,
+        pomodoros: 0,
+        longestStudySession: 0,
+        longestWorkout: 0,
+        mostSets: 0,
+        longestWorkoutStreak: 0
+    },
+
+    history: {},
+
+    achievements: [],
+
+    music: {
+        current: "lofi",
+        playing: false,
+        volume: 50
     }
+};
 
-    50% {
-        transform: translate3d(25px, -20px, 0) scale(1.08);
+
+let state = loadState();
+
+
+function loadState() {
+
+    try {
+
+        const saved = localStorage.getItem(STORAGE_KEY);
+
+        if (!saved) {
+            return structuredClone(defaultState);
+        }
+
+        const parsed = JSON.parse(saved);
+
+        return mergeDeep(
+            structuredClone(defaultState),
+            parsed
+        );
+
+    } catch (error) {
+
+        console.error("Could not load state:", error);
+
+        return structuredClone(defaultState);
     }
 }
 
-.mode-content {
-    position: relative;
-    z-index: 2;
 
-    width: min(1180px, calc(100% - 40px));
-    min-height: 100vh;
+function mergeDeep(base, incoming) {
 
-    margin: auto;
-    padding: 70px 0 35px;
+    Object.keys(incoming || {}).forEach((key) => {
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+        if (
+            incoming[key] &&
+            typeof incoming[key] === "object" &&
+            !Array.isArray(incoming[key]) &&
+            base[key] &&
+            typeof base[key] === "object"
+        ) {
+            base[key] = mergeDeep(base[key], incoming[key]);
+        } else {
+            base[key] = incoming[key];
+        }
+
+    });
+
+    return base;
 }
 
 
-/* =========================================================
-   BRAND
-========================================================= */
-
-.brand-area {
-    text-align: center;
-    margin-bottom: 55px;
-    animation: fadeDown 0.8s ease both;
-}
-
-.brand-mark {
-    width: 50px;
-    height: 50px;
-
-    margin: 0 auto 14px;
-
-    display: grid;
-    place-items: center;
-
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-
-    background: rgba(255, 255, 255, 0.05);
-
-    font-size: 22px;
-    font-weight: 900;
-
-    box-shadow:
-        0 0 30px rgba(99, 102, 241, 0.15);
-
-    backdrop-filter: blur(15px);
-}
-
-.brand-area h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 900;
-    letter-spacing: 0.18em;
-}
-
-.brand-tagline {
-    margin-top: 8px;
-    color: #898996;
-    font-size: 0.9rem;
-    letter-spacing: 0.08em;
-}
-
-
-/* =========================================================
-   MODE HEADING
-========================================================= */
-
-.mode-heading {
-    text-align: center;
-    margin-bottom: 40px;
-    animation: fadeUp 0.8s 0.1s ease both;
-}
-
-.eyebrow {
-    display: inline-block;
-
-    font-size: 0.68rem;
-    font-weight: 800;
-
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-}
-
-.mode-heading .eyebrow {
-    color: #777783;
-}
-
-.mode-heading h2 {
-    margin-top: 12px;
-
-    font-size: clamp(2rem, 5vw, 4rem);
-    line-height: 1.05;
-    letter-spacing: -0.045em;
-}
-
-.mode-heading h2 span {
-    display: block;
-
-    background: linear-gradient(
-        90deg,
-        #8b5cf6,
-        #6366f1,
-        #3b82f6
+function saveState() {
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(state)
     );
-
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-}
-
-.mode-heading p {
-    margin-top: 16px;
-    color: #888894;
 }
 
 
 /* =========================================================
-   MODE CARDS
+   GENERAL HELPERS
 ========================================================= */
 
-.mode-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-}
+function todayKey() {
 
-.mode-card {
-    position: relative;
+    const date = new Date();
 
-    min-height: 390px;
-
-    padding: 34px;
-
-    overflow: hidden;
-
-    text-align: left;
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.08),
-            rgba(255, 255, 255, 0.025)
-        );
-
-    color: white;
-
-    backdrop-filter: blur(20px);
-
-    transform: translateY(0) scale(1);
-
-    transition:
-        transform var(--transition),
-        border-color var(--transition),
-        box-shadow var(--transition),
-        background var(--transition);
-
-    animation: cardEntrance 0.8s ease both;
-}
-
-.study-mode-card {
-    animation-delay: 0.2s;
-}
-
-.workout-mode-card {
-    animation-delay: 0.3s;
-}
-
-.mode-card:hover {
-    transform: translateY(-12px) scale(1.025);
-
-    border-color: rgba(255, 255, 255, 0.25);
-
-    box-shadow:
-        0 30px 70px rgba(0, 0, 0, 0.35),
-        0 0 60px rgba(99, 102, 241, 0.12);
-}
-
-.mode-card:active {
-    transform: translateY(-5px) scale(0.99);
-}
-
-.mode-card-glow {
-    position: absolute;
-    width: 220px;
-    height: 220px;
-
-    right: -80px;
-    top: -80px;
-
-    border-radius: 50%;
-
-    opacity: 0;
-
-    filter: blur(35px);
-
-    transition: opacity var(--transition);
-}
-
-.mode-card:hover .mode-card-glow {
-    opacity: 1;
-}
-
-.study-mode-card .mode-card-glow {
-    background: rgba(99, 102, 241, 0.35);
-}
-
-.workout-mode-card .mode-card-glow {
-    background: rgba(255, 90, 54, 0.35);
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+    ].join("-");
 }
 
 
-/* =========================================================
-   MODE ICON
-========================================================= */
+function formatMinutes(minutes) {
 
-.mode-icon-wrapper {
-    width: 82px;
-    height: 82px;
+    minutes = Math.max(0, Math.round(minutes));
 
-    display: grid;
-    place-items: center;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
 
-    border-radius: 24px;
+    if (hours > 0) {
+        return `${hours}h ${mins}m`;
+    }
 
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-    transition: transform var(--transition);
-}
-
-.mode-card:hover .mode-icon-wrapper {
-    transform:
-        translateY(-5px)
-        rotate(-3deg)
-        scale(1.08);
-}
-
-.mode-icon {
-    font-size: 40px;
-    line-height: 1;
-
-    transition:
-        transform var(--transition),
-        filter var(--transition);
-}
-
-.mode-card:hover .mode-icon {
-    transform: scale(1.12);
-    filter: drop-shadow(0 10px 20px rgba(255, 255, 255, 0.15));
+    return `${mins}m`;
 }
 
 
-/* =========================================================
-   MODE CONTENT
-========================================================= */
+function formatTimer(seconds) {
 
-.mode-card-content {
-    position: relative;
-    z-index: 2;
-    margin-top: 35px;
-}
+    seconds = Math.max(0, Math.floor(seconds));
 
-.mode-number {
-    color: #6f6f7b;
+    const minutes = Math.floor(seconds / 60);
+    const remaining = seconds % 60;
 
-    font-size: 0.68rem;
-    font-weight: 800;
-
-    letter-spacing: 0.15em;
-}
-
-.mode-card h3 {
-    margin-top: 8px;
-
-    font-size: 2rem;
-    letter-spacing: -0.04em;
-}
-
-.mode-card p {
-    max-width: 420px;
-
-    margin-top: 10px;
-
-    color: #9999a6;
-    line-height: 1.65;
-}
-
-.mode-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    margin-top: 22px;
-}
-
-.mode-features span {
-    padding: 7px 10px;
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-
-    background: rgba(255, 255, 255, 0.035);
-
-    color: #aaaab5;
-    font-size: 0.75rem;
-}
-
-.mode-arrow {
-    position: absolute;
-
-    right: 30px;
-    bottom: 28px;
-
-    width: 46px;
-    height: 46px;
-
-    display: grid;
-    place-items: center;
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.05);
-
-    font-size: 1.3rem;
-
-    transition:
-        transform var(--transition),
-        background var(--transition);
-}
-
-.mode-card:hover .mode-arrow {
-    transform: translateX(7px);
-    background: rgba(255, 255, 255, 0.1);
+    return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
 }
 
 
-/* =========================================================
-   MODE FOOTER
-========================================================= */
+function escapeHTML(value) {
 
-.mode-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-
-    margin-top: 35px;
-
-    color: #5f5f6b;
-
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-
-    animation: fadeUp 0.8s 0.4s ease both;
-}
-
-.footer-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: #555560;
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 
-/* =========================================================
-   APP SCREENS
-========================================================= */
+function generateId() {
 
-.app-screen {
-    display: none;
-    min-height: 100vh;
-
-    animation: pageEnter 0.55s ease both;
-}
-
-.app-screen.active {
-    display: block;
+    return `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 9)}`;
 }
 
 
-/* =========================================================
-   STUDY ENVIRONMENT
-========================================================= */
+function clamp(value, min, max) {
 
-.study-environment {
-    min-height: 100vh;
-
-    background:
-        radial-gradient(
-            circle at 10% 10%,
-            rgba(99, 102, 241, 0.08),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 90% 30%,
-            rgba(139, 92, 246, 0.06),
-            transparent 28%
-        ),
-        var(--study-bg);
-
-    color: var(--study-text);
-}
-
-
-/* =========================================================
-   WORKOUT ENVIRONMENT
-========================================================= */
-
-.workout-environment {
-    min-height: 100vh;
-
-    background:
-        radial-gradient(
-            circle at 10% 5%,
-            rgba(255, 90, 54, 0.1),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at 90% 60%,
-            rgba(255, 154, 61, 0.07),
-            transparent 30%
-        ),
-        var(--workout-bg);
-
-    color: var(--workout-text);
-}
-
-
-/* =========================================================
-   APP HEADER
-========================================================= */
-
-.app-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-
-    height: 74px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 32px;
-
-    backdrop-filter: blur(18px);
-}
-
-.study-header {
-    background: rgba(245, 247, 251, 0.82);
-    border-bottom: 1px solid var(--study-border);
-}
-
-.workout-header {
-    background: rgba(7, 8, 11, 0.78);
-    border-bottom: 1px solid var(--workout-border);
-}
-
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-
-    padding: 9px 13px;
-
-    border-radius: 10px;
-
-    background: transparent;
-
-    transition:
-        background var(--transition-fast),
-        transform var(--transition-fast);
-}
-
-.study-header .back-button {
-    color: var(--study-muted);
-}
-
-.workout-header .back-button {
-    color: var(--workout-muted);
-}
-
-.back-button:hover {
-    transform: translateX(-3px);
-}
-
-.study-header .back-button:hover {
-    background: var(--study-surface-soft);
-}
-
-.workout-header .back-button:hover {
-    background: var(--workout-surface);
-}
-
-.app-brand {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-
-    font-weight: 900;
-    letter-spacing: 0.12em;
-}
-
-.app-brand-icon {
-    font-size: 1.3rem;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.icon-button {
-    width: 40px;
-    height: 40px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 12px;
-
-    transition:
-        transform var(--transition-fast),
-        background var(--transition-fast);
-}
-
-.study-header .icon-button {
-    color: var(--study-text);
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-}
-
-.workout-header .icon-button {
-    color: white;
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-}
-
-.icon-button:hover {
-    transform: translateY(-2px);
-}
-
-.profile-button {
-    background: transparent;
-}
-
-.profile-avatar {
-    width: 40px;
-    height: 40px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 50%;
-
-    background: linear-gradient(
-        135deg,
-        #6366f1,
-        #8b5cf6
+    return Math.min(
+        Math.max(value, min),
+        max
     );
-
-    color: white;
-    font-weight: 800;
-}
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-.mode-navigation {
-    position: sticky;
-    top: 74px;
-    z-index: 40;
-
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-
-    padding: 10px 20px;
-}
-
-.study-navigation {
-    background: rgba(245, 247, 251, 0.8);
-    border-bottom: 1px solid var(--study-border);
-}
-
-.workout-navigation {
-    background: rgba(7, 8, 11, 0.78);
-    border-bottom: 1px solid var(--workout-border);
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    padding: 10px 15px;
-
-    border-radius: 11px;
-
-    background: transparent;
-
-    font-size: 0.82rem;
-    font-weight: 700;
-
-    transition:
-        background var(--transition-fast),
-        transform var(--transition-fast);
-}
-
-.study-navigation .nav-item {
-    color: var(--study-muted);
-}
-
-.workout-navigation .nav-item {
-    color: var(--workout-muted);
-}
-
-.nav-item:hover {
-    transform: translateY(-2px);
-}
-
-.study-navigation .nav-item:hover,
-.study-navigation .nav-item.active {
-    color: var(--study-accent);
-    background: white;
-    box-shadow: var(--shadow-sm);
-}
-
-.workout-navigation .nav-item:hover,
-.workout-navigation .nav-item.active {
-    color: var(--workout-accent);
-    background: var(--workout-surface);
-}
-
-
-/* =========================================================
-   APP CONTENT
-========================================================= */
-
-.app-content {
-    width: min(1200px, calc(100% - 40px));
-    margin: auto;
-
-    padding: 55px 0 90px;
-}
-
-.internal-page {
-    display: none;
-    animation: fadeUp 0.45s ease both;
-}
-
-.internal-page.active-page {
-    display: block;
-}
-
-
-/* =========================================================
-   PAGE HEADING
-========================================================= */
-
-.page-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 30px;
-
-    margin-bottom: 35px;
-}
-
-.compact-heading {
-    align-items: center;
-}
-
-.study-environment .page-heading .eyebrow {
-    color: var(--study-accent);
-}
-
-.workout-environment .page-heading .eyebrow {
-    color: var(--workout-accent);
-}
-
-.page-heading h1 {
-    margin-top: 8px;
-
-    font-size: clamp(2rem, 4vw, 3.1rem);
-    letter-spacing: -0.045em;
-}
-
-.page-heading p {
-    margin-top: 9px;
-
-    color: var(--study-muted);
-}
-
-.workout-environment .page-heading p {
-    color: var(--workout-muted);
-}
-
-.page-heading h1 span {
-    color: var(--study-accent);
-}
-
-.daily-streak {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    padding: 11px 16px;
-
-    border-radius: 15px;
-    background: white;
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-}
-
-.workout-streak {
-    background: var(--workout-surface);
-    border-color: var(--workout-border);
-}
-
-.daily-streak > span {
-    font-size: 1.5rem;
-}
-
-.daily-streak strong {
-    display: block;
-    font-size: 1.05rem;
-}
-
-.daily-streak small {
-    color: var(--study-muted);
-}
-
-.workout-streak small {
-    color: var(--workout-muted);
-}
-
-
-/* =========================================================
-   STATS
-========================================================= */
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    margin-bottom: 45px;
-}
-
-.stat-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-
-    padding: 20px;
-
-    border-radius: var(--radius-md);
-
-    transition:
-        transform var(--transition),
-        box-shadow var(--transition);
-}
-
-.study-stats .stat-card {
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-    box-shadow: var(--shadow-sm);
-}
-
-.workout-stats .stat-card {
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
-}
-
-.stat-icon {
-    width: 45px;
-    height: 45px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 13px;
-
-    font-size: 1.25rem;
-}
-
-.study-stats .stat-icon {
-    background: #eef2ff;
-}
-
-.workout-stats .stat-icon {
-    background: rgba(255, 90, 54, 0.1);
-}
-
-.stat-card strong {
-    display: block;
-    font-size: 1.25rem;
-}
-
-.stat-card small {
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--study-muted);
-    font-size: 0.75rem;
-}
-
-.workout-stats .stat-card small {
-    color: var(--workout-muted);
-}
-
-
-/* =========================================================
-   SECTION
-========================================================= */
-
-.content-section {
-    margin-top: 42px;
-}
-
-.section-heading,
-.panel-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-
-    margin-bottom: 18px;
-}
-
-.section-heading h2,
-.panel-heading h2 {
-    margin-top: 5px;
-
-    font-size: 1.25rem;
-    letter-spacing: -0.025em;
-}
-
-.section-heading p {
-    margin-top: 5px;
-    color: var(--study-muted);
-}
-
-.workout-environment .section-heading p {
-    color: var(--workout-muted);
-}
-
-
-/* =========================================================
-   GOALS
-========================================================= */
-
-.goal-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-
-.goal-card {
-    padding: 20px;
-
-    border-radius: var(--radius-md);
-
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-}
-
-.goal-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-
-    margin-bottom: 14px;
-
-    font-size: 0.85rem;
-}
-
-.goal-top strong {
-    color: var(--study-muted);
-    font-size: 0.75rem;
-}
-
-.progress-track,
-.xp-track {
-    width: 100%;
-    height: 7px;
-
-    overflow: hidden;
-
-    border-radius: 99px;
-    background: #e7ebf2;
-}
-
-.progress-fill,
-.xp-fill {
-    width: 0;
-    height: 100%;
-
-    border-radius: inherit;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--study-accent),
-            var(--study-accent-2)
-        );
-
-    transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-
-/* =========================================================
-   DASHBOARD COLUMNS
-========================================================= */
-
-.dashboard-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-
-    margin-top: 25px;
-}
-
-.dashboard-panel {
-    padding: 24px;
-
-    border-radius: var(--radius-lg);
-
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-}
-
-
-/* =========================================================
-   MINI TIMER
-========================================================= */
-
-.mini-timer {
-    padding: 25px;
-
-    border-radius: 18px;
-
-    text-align: center;
-
-    background: var(--study-surface-soft);
-}
-
-.mini-timer-display {
-    font-size: clamp(3rem, 7vw, 4.5rem);
-    font-weight: 800;
-    letter-spacing: -0.06em;
-}
-
-.mini-timer span {
-    display: block;
-
-    margin: 4px 0 18px;
-
-    color: var(--study-muted);
-}
-
-
-/* =========================================================
-   PRIORITY LIST
-========================================================= */
-
-.priority-list {
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-}
-
-.priority-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 13px;
-
-    border-radius: 12px;
-
-    background: var(--study-surface-soft);
-}
-
-.priority-item-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.priority-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-
-.priority-high {
-    background: var(--study-danger);
-}
-
-.priority-medium {
-    background: var(--study-warning);
-}
-
-.priority-low {
-    background: var(--study-success);
-}
-
-
-/* =========================================================
-   QUOTES
-========================================================= */
-
-.quote-card {
-    position: relative;
-
-    margin-top: 30px;
-    padding: 30px 35px;
-
-    overflow: hidden;
-
-    border-radius: var(--radius-lg);
-}
-
-.study-quote-card {
-    background:
-        linear-gradient(
-            135deg,
-            #eef2ff,
-            #f5f3ff
-        );
-
-    border: 1px solid #dfe4ff;
-}
-
-.workout-quote-card {
-    background:
-        linear-gradient(
-            135deg,
-            #17110f,
-            #111216
-        );
-
-    border: 1px solid var(--workout-border);
-}
-
-.quote-mark {
-    position: absolute;
-
-    top: -30px;
-    left: 10px;
-
-    font-size: 9rem;
-    line-height: 1;
-
-    opacity: 0.07;
-}
-
-.quote-card p {
-    position: relative;
-
-    max-width: 800px;
-
-    font-size: 1.1rem;
-    font-weight: 650;
-    line-height: 1.7;
-}
-
-.quote-author {
-    display: block;
-
-    margin-top: 10px;
-
-    color: var(--study-muted);
-    font-size: 0.78rem;
-}
-
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-.primary-button,
-.secondary-button,
-.small-button,
-.text-button {
-    border-radius: 11px;
-
-    font-weight: 800;
-
-    transition:
-        transform var(--transition-fast),
-        box-shadow var(--transition-fast),
-        background var(--transition-fast);
-}
-
-.primary-button {
-    padding: 12px 18px;
-
-    color: white;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--study-accent),
-            var(--study-accent-2)
-        );
-
-    box-shadow:
-        0 8px 25px rgba(99, 102, 241, 0.2);
-}
-
-.primary-button:hover {
-    transform: translateY(-2px);
-
-    box-shadow:
-        0 12px 30px rgba(99, 102, 241, 0.3);
-}
-
-.secondary-button {
-    padding: 12px 18px;
-
-    color: var(--study-text);
-
-    background: var(--study-surface-soft);
-    border: 1px solid var(--study-border);
-}
-
-.secondary-button:hover {
-    transform: translateY(-2px);
-}
-
-.small-button {
-    width: 42px;
-    height: 42px;
-
-    color: var(--study-accent);
-    background: #eef2ff;
-
-    font-size: 1.2rem;
-}
-
-.text-button {
-    padding: 6px;
-
-    background: transparent;
-    color: var(--study-accent);
-}
-
-.full-button {
-    width: 100%;
-}
-
-.large-button {
-    min-width: 150px;
-    padding: 14px 22px;
-}
-
-
-/* =========================================================
-   FOCUS PAGE
-========================================================= */
-
-.focus-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.7fr);
-    gap: 22px;
-}
-
-.focus-timer-card,
-.focus-settings-card {
-    border: 1px solid var(--study-border);
-    border-radius: var(--radius-xl);
-    background: var(--study-surface);
-    box-shadow: var(--shadow-sm);
-}
-
-.focus-timer-card {
-    min-height: 540px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    padding: 50px;
-}
-
-.timer-top {
-    width: 100%;
-
-    display: flex;
-    justify-content: space-between;
-
-    color: var(--study-muted);
-
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-}
-
-.pomodoro-timer {
-    margin: 35px 0 12px;
-
-    font-size: clamp(5rem, 13vw, 9rem);
-    line-height: 0.95;
-
-    font-weight: 850;
-    letter-spacing: -0.08em;
-
-    color: var(--study-text);
-}
-
-.timer-mode {
-    color: var(--study-muted);
-}
-
-.timer-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    margin-top: 35px;
-}
-
-.focus-settings-card {
-    padding: 28px;
-}
-
-.timer-presets {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 9px;
-
-    margin-bottom: 25px;
-}
-
-.timer-preset {
-    padding: 14px;
-
-    text-align: left;
-
-    border-radius: 13px;
-
-    background: var(--study-surface-soft);
-    border: 1px solid transparent;
-
-    transition: var(--transition-fast);
-}
-
-.timer-preset:hover,
-.timer-preset.active {
-    border-color: #c9cfff;
-    background: #eef2ff;
-}
-
-.timer-preset strong,
-.timer-preset span {
-    display: block;
-}
-
-.timer-preset strong {
-    font-size: 0.9rem;
-}
-
-.timer-preset span {
-    margin-top: 3px;
-
-    color: var(--study-muted);
-    font-size: 0.7rem;
-}
-
-.field-label {
-    display: block;
-
-    margin: 18px 0 7px;
-
-    color: var(--study-muted);
-
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-select,
-input[type="text"],
-input[type="date"],
-input[type="number"],
-input[type="search"] {
-    width: 100%;
-
-    padding: 12px 13px;
-
-    border: 1px solid var(--study-border);
-    border-radius: 11px;
-
-    background: var(--study-surface);
-    color: var(--study-text);
-
-    transition: var(--transition-fast);
-}
-
-select:focus,
-input:focus {
-    border-color: var(--study-accent);
-}
-
-.inline-field {
-    display: grid;
-    grid-template-columns: 1fr 42px;
-    gap: 8px;
-}
-
-
-/* =========================================================
-   BREAK SYSTEM
-========================================================= */
-
-.break-section {
-    margin-top: 45px;
-}
-
-.break-countdown {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    color: var(--study-muted);
-}
-
-.break-countdown strong {
-    font-size: 1.2rem;
-}
-
-.break-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-}
-
-.break-card {
-    padding: 25px 18px;
-
-    border-radius: var(--radius-md);
-
-    text-align: center;
-
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-
-    transition:
-        transform var(--transition),
-        box-shadow var(--transition);
-}
-
-.break-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-md);
-}
-
-.break-icon {
-    display: block;
-
-    margin-bottom: 10px;
-
-    font-size: 2rem;
-}
-
-.break-card strong,
-.break-card small {
-    display: block;
-}
-
-.break-card small {
-    margin-top: 4px;
-    color: var(--study-muted);
-}
-
-
-/* =========================================================
-   TASKS
-========================================================= */
-
-.task-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 20px;
-}
-
-.task-filters {
-    display: flex;
-    gap: 7px;
-    flex-wrap: wrap;
-}
-
-.filter-btn,
-.plan-filter-btn {
-    padding: 9px 13px;
-
-    border-radius: 10px;
-
-    background: transparent;
-
-    color: var(--study-muted);
-
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.filter-btn.active,
-.filter-btn:hover {
-    background: #eef2ff;
-    color: var(--study-accent);
-}
-
-.task-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.task-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-
-    padding: 16px;
-
-    border: 1px solid var(--study-border);
-    border-radius: 14px;
-
-    background: var(--study-surface);
-
-    transition:
-        transform var(--transition-fast),
-        box-shadow var(--transition-fast);
-}
-
-.task-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-}
-
-.task-checkbox {
-    width: 22px;
-    height: 22px;
-
-    border: 2px solid #cbd2dd;
-    border-radius: 7px;
-
-    background: transparent;
-}
-
-.task-item.completed {
-    opacity: 0.55;
-}
-
-.task-item.completed .task-checkbox {
-    background: var(--study-success);
-    border-color: var(--study-success);
-}
-
-.task-info {
-    flex: 1;
-}
-
-.task-title {
-    font-weight: 750;
-}
-
-.task-meta {
-    display: flex;
-    gap: 9px;
-    flex-wrap: wrap;
-
-    margin-top: 5px;
-
-    color: var(--study-muted);
-
-    font-size: 0.7rem;
-}
-
-.priority-badge {
-    padding: 4px 7px;
-    border-radius: 6px;
-
-    font-size: 0.62rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-
-/* =========================================================
-   SUBJECTS
-========================================================= */
-
-.subject-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-
-.subject-card {
-    padding: 22px;
-
-    border-radius: var(--radius-md);
-
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-
-    transition: var(--transition);
-}
-
-.subject-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
-}
-
-.subject-card-icon {
-    font-size: 2rem;
-}
-
-.subject-card h3 {
-    margin-top: 14px;
-}
-
-.subject-card p {
-    margin-top: 5px;
-    color: var(--study-muted);
-}
-
-
-/* =========================================================
-   MUSIC
-========================================================= */
-
-.music-player {
-    display: grid;
-
-    grid-template-columns: auto 1fr auto auto;
-    align-items: center;
-    gap: 20px;
-
-    padding: 25px;
-
-    border-radius: var(--radius-xl);
-
-    background:
-        linear-gradient(
-            135deg,
-            #17172a,
-            #20203c
-        );
-
-    color: white;
-}
-
-.music-cover {
-    width: 80px;
-    height: 80px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 20px;
-
-    background: rgba(255, 255, 255, 0.08);
-
-    font-size: 2rem;
-}
-
-.music-info > span {
-    color: #9999b0;
-
-    font-size: 0.62rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-}
-
-.music-info h2 {
-    margin-top: 4px;
-}
-
-.music-info p {
-    margin-top: 3px;
-    color: #9999aa;
-    font-size: 0.78rem;
-}
-
-.music-progress {
-    height: 4px;
-
-    margin-top: 15px;
-
-    overflow: hidden;
-
-    border-radius: 99px;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.music-progress-fill {
-    width: 30%;
-    height: 100%;
-    background: #8b5cf6;
-}
-
-.music-controls {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.music-controls button {
-    width: 38px;
-    height: 38px;
-
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
-}
-
-.music-controls .music-play {
-    width: 48px;
-    height: 48px;
-
-    background: white;
-    color: #17172a;
-}
-
-.volume-control {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.volume-control input {
-    width: 90px;
-}
-
-.sound-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-
-    margin-top: 25px;
-}
-
-.sound-option {
-    padding: 22px;
-
-    text-align: left;
-
-    border: 1px solid var(--study-border);
-    border-radius: var(--radius-md);
-
-    background: var(--study-surface);
-
-    transition: var(--transition);
-}
-
-.sound-option:hover,
-.sound-option.active {
-    transform: translateY(-4px);
-
-    border-color: #c8ccff;
-    box-shadow: var(--shadow-sm);
-}
-
-.sound-option > span {
-    display: block;
-    font-size: 1.7rem;
-}
-
-.sound-option strong {
-    display: block;
-    margin-top: 13px;
-}
-
-.sound-option small {
-    display: block;
-    margin-top: 3px;
-    color: var(--study-muted);
-}
-
-
-/* =========================================================
-   ANALYTICS
-========================================================= */
-
-.analytics-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-
-    margin-bottom: 25px;
-}
-
-.analytics-stat {
-    padding: 23px;
-
-    border-radius: var(--radius-md);
-
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-}
-
-.analytics-stat span {
-    font-size: 1.5rem;
-}
-
-.analytics-stat strong {
-    display: block;
-
-    margin-top: 12px;
-
-    font-size: 1.7rem;
-}
-
-.analytics-stat small {
-    color: var(--study-muted);
-}
-
-.analytics-panel {
-    padding: 25px;
-
-    border-radius: var(--radius-lg);
-
-    background: var(--study-surface);
-    border: 1px solid var(--study-border);
-
-    box-shadow: var(--shadow-sm);
-}
-
-#studyChart {
-    width: 100%;
-    min-height: 300px;
-}
-
-.analytics-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-
-    margin-top: 20px;
-}
-
-.review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 13px;
-}
-
-.review-list div {
-    display: flex;
-    justify-content: space-between;
-
-    padding: 12px;
-
-    border-radius: 10px;
-    background: var(--study-surface-soft);
-}
-
-.review-list span {
-    color: var(--study-muted);
-}
-
-
-/* =========================================================
-   WORKOUT UI
-========================================================= */
-
-.workout-environment .primary-button {
-    background:
-        linear-gradient(
-            135deg,
-            var(--workout-accent),
-            var(--workout-accent-2)
-        );
-
-    box-shadow:
-        0 10px 30px rgba(255, 90, 54, 0.18);
-}
-
-.workout-environment .secondary-button {
-    color: var(--workout-text);
-
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-}
-
-.workout-primary-button:hover {
-    box-shadow:
-        0 15px 35px rgba(255, 90, 54, 0.28);
-}
-
-.featured-workout {
-    position: relative;
-
-    min-height: 260px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 40px;
-
-    overflow: hidden;
-
-    border-radius: var(--radius-xl);
-
-    background:
-        linear-gradient(
-            135deg,
-            #19100d,
-            #111216
-        );
-
-    border: 1px solid var(--workout-border);
 }
 
-.featured-workout::after {
-    content: "";
 
-    position: absolute;
+function ensureTodayHistory() {
 
-    width: 280px;
-    height: 280px;
+    const key = todayKey();
 
-    right: -100px;
-    top: -100px;
-
-    border-radius: 50%;
-
-    background: rgba(255, 90, 54, 0.16);
-    filter: blur(20px);
-}
-
-.featured-workout-content {
-    position: relative;
-    z-index: 2;
-}
-
-.featured-workout .eyebrow {
-    color: var(--workout-accent);
-}
-
-.featured-workout h2 {
-    margin-top: 9px;
-
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    letter-spacing: -0.05em;
-}
-
-.featured-workout p {
-    margin: 8px 0 22px;
-
-    color: var(--workout-muted);
-}
-
-.featured-workout-icon {
-    position: relative;
-    z-index: 2;
-
-    font-size: clamp(5rem, 12vw, 9rem);
-
-    animation: workoutFloat 4s ease-in-out infinite;
-}
+    if (!state.history[key]) {
 
-@keyframes workoutFloat {
-    0%,
-    100% {
-        transform: translateY(0) rotate(-2deg);
+        state.history[key] = {
+            studyMinutes: 0,
+            pomodoros: 0,
+            tasksCompleted: 0,
+            workoutMinutes: 0,
+            workouts: 0,
+            sets: 0,
+            active: false
+        };
     }
 
-    50% {
-        transform: translateY(-10px) rotate(2deg);
-    }
+    return state.history[key];
 }
 
 
-/* =========================================================
-   WORKOUT PLANS
-========================================================= */
+function markActivity() {
 
-.plan-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    const today = ensureTodayHistory();
 
-    margin-bottom: 25px;
-}
-
-.workout-environment .plan-filter-btn {
-    color: var(--workout-muted);
-}
-
-.workout-environment .plan-filter-btn.active,
-.workout-environment .plan-filter-btn:hover {
-    color: var(--workout-accent);
-    background: rgba(255, 90, 54, 0.08);
-}
-
-.workout-plan-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-
-.workout-plan-option {
-    position: relative;
-
-    min-height: 190px;
-
-    padding: 25px;
-
-    text-align: left;
-
-    border-radius: var(--radius-lg);
-
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-
-    color: var(--workout-text);
-
-    transition: var(--transition);
-}
-
-.workout-plan-option:hover {
-    transform: translateY(-7px);
-
-    border-color: rgba(255, 90, 54, 0.45);
-
-    box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.25);
-}
-
-.workout-plan-option > span {
-    display: block;
-
-    font-size: 2.1rem;
-}
-
-.workout-plan-option strong {
-    display: block;
-
-    margin-top: 20px;
-
-    font-size: 1.1rem;
-}
-
-.workout-plan-option small {
-    display: block;
-
-    margin-top: 5px;
-
-    color: var(--workout-muted);
-}
-
-
-/* =========================================================
-   EXERCISE LIBRARY
-========================================================= */
-
-.exercise-search {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    max-width: 550px;
-
-    margin-bottom: 25px;
-
-    padding: 5px 14px;
-
-    border: 1px solid var(--workout-border);
-    border-radius: 13px;
-
-    background: var(--workout-surface);
-}
-
-.exercise-search > span {
-    color: var(--workout-muted);
-    font-size: 1.3rem;
-}
-
-.workout-environment .exercise-search input {
-    border: 0;
-    background: transparent;
-    color: var(--workout-text);
-}
-
-.exercise-library {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-
-.exercise-card {
-    padding: 22px;
-
-    border: 1px solid var(--workout-border);
-    border-radius: var(--radius-lg);
-
-    background: var(--workout-surface);
-
-    transition: var(--transition);
-}
-
-.exercise-card:hover {
-    transform: translateY(-6px);
-
-    border-color: rgba(255, 90, 54, 0.4);
-
-    box-shadow:
-        0 20px 45px rgba(0, 0, 0, 0.25);
-}
-
-.exercise-card-image {
-    height: 150px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 15px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #1c1e25,
-            #121319
-        );
-
-    font-size: 4rem;
-}
-
-.exercise-card h3 {
-    margin-top: 15px;
-}
-
-.exercise-card p {
-    margin-top: 5px;
-
-    color: var(--workout-muted);
-    font-size: 0.78rem;
-}
-
-
-/* =========================================================
-   EXERCISE PREVIEW
-========================================================= */
-
-.exercise-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 13px;
-}
-
-.exercise-preview {
-    padding: 18px;
-
-    border-radius: 15px;
-
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-
-    transition: var(--transition);
-}
-
-.exercise-preview:hover {
-    transform: translateY(-4px);
-}
-
-.exercise-preview-icon {
-    font-size: 2rem;
-}
-
-.exercise-preview strong {
-    display: block;
-    margin-top: 10px;
-}
-
-.exercise-preview small {
-    display: block;
-    margin-top: 4px;
-    color: var(--workout-muted);
-}
-
-
-/* =========================================================
-   WORKOUT SESSION
-========================================================= */
-
-.workout-session-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
-    gap: 20px;
-}
-
-.active-exercise-card,
-.workout-control-card {
-    border-radius: var(--radius-xl);
-
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-}
-
-.active-exercise-card {
-    overflow: hidden;
-}
-
-.exercise-demo {
-    min-height: 320px;
-
-    display: grid;
-    place-items: center;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255, 90, 54, 0.1),
-            transparent 60%
-        );
-}
-
-.exercise-demo-placeholder {
-    font-size: 8rem;
-
-    animation: exercisePulse 3s ease-in-out infinite;
-}
-
-@keyframes exercisePulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-.active-exercise-info {
-    padding: 30px;
-}
-
-.workout-environment .active-exercise-info .eyebrow {
-    color: var(--workout-accent);
-}
-
-.active-exercise-info h2 {
-    margin-top: 8px;
-
-    font-size: 2rem;
-}
-
-.active-exercise-info > p {
-    margin-top: 8px;
-
-    max-width: 650px;
-
-    color: var(--workout-muted);
-    line-height: 1.6;
-}
-
-.exercise-meta {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-
-    margin-top: 25px;
-}
-
-.exercise-meta div {
-    padding: 15px;
-
-    border-radius: 13px;
-
-    background: var(--workout-surface-2);
-}
-
-.exercise-meta span,
-.exercise-meta strong {
-    display: block;
-}
-
-.exercise-meta span {
-    color: var(--workout-muted);
-
-    font-size: 0.62rem;
-    font-weight: 800;
-}
-
-.exercise-meta strong {
-    margin-top: 5px;
-}
-
-.workout-control-card {
-    padding: 25px;
-}
-
-.workout-live-timer {
-    padding: 20px;
-
-    margin-bottom: 20px;
-
-    text-align: center;
-
-    border-radius: 17px;
-
-    background: var(--workout-surface-2);
-}
-
-.workout-live-timer span {
-    display: block;
-
-    color: var(--workout-muted);
-
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-}
-
-.workout-live-timer strong {
-    display: block;
-
-    margin-top: 8px;
-
-    font-size: 3rem;
-    letter-spacing: -0.05em;
-}
-
-.workout-control-card > button {
-    margin-top: 10px;
-}
-
-.rest-timer {
-    display: grid;
-    place-items: center;
-
-    height: 100px;
-
-    margin-top: 15px;
-
-    border-radius: 17px;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255, 90, 54, 0.15),
-            transparent 65%
-        );
-
-    color: var(--workout-accent);
-
-    font-size: 2.5rem;
-    font-weight: 850;
-}
-
-
-/* =========================================================
-   RECORDS
-========================================================= */
-
-.records-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-
-    margin-top: 25px;
-}
-
-.record-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-
-    padding: 22px;
-
-    border-radius: var(--radius-md);
-
-    background: var(--workout-surface);
-    border: 1px solid var(--workout-border);
-}
-
-.record-card > span {
-    font-size: 2rem;
-}
-
-.record-card small,
-.record-card strong {
-    display: block;
-}
-
-.record-card small {
-    color: var(--workout-muted);
-}
-
-.record-card strong {
-    margin-top: 5px;
-}
-
-
-/* =========================================================
-   PROFILE PANEL
-========================================================= */
-
-.profile-panel {
-    position: fixed;
-
-    z-index: 100;
-
-    top: 0;
-    right: 0;
-
-    width: min(390px, 100%);
-
-    height: 100vh;
-
-    padding: 25px;
-
-    overflow-y: auto;
-
-    background: white;
-    border-left: 1px solid var(--study-border);
-
-    box-shadow: -20px 0 70px rgba(0, 0, 0, 0.12);
-
-    transform: translateX(105%);
-
-    transition: transform var(--transition-slow);
-}
-
-.profile-panel.open {
-    transform: translateX(0);
-}
-
-.profile-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.profile-main {
-    text-align: center;
-
-    padding: 45px 0 30px;
-}
-
-.large-avatar {
-    width: 90px;
-    height: 90px;
-
-    display: grid;
-    place-items: center;
-
-    margin: auto;
-
-    border-radius: 50%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #6366f1,
-            #8b5cf6
-        );
-
-    color: white;
-
-    font-size: 2rem;
-    font-weight: 900;
-}
-
-.profile-main h3 {
-    margin-top: 15px;
-    font-size: 1.4rem;
-}
-
-.profile-main span {
-    color: var(--study-muted);
-}
-
-.profile-xp {
-    padding: 18px;
-
-    border-radius: 16px;
-
-    background: var(--study-surface-soft);
-}
-
-.profile-xp > div:first-child {
-    display: flex;
-    justify-content: space-between;
-
-    margin-bottom: 10px;
-
-    font-size: 0.8rem;
-}
-
-.profile-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-
-    margin-top: 20px;
-}
-
-.profile-stats div {
-    padding: 15px;
-
-    text-align: center;
-
-    border-radius: 12px;
-    background: var(--study-surface-soft);
-}
-
-.profile-stats strong,
-.profile-stats span {
-    display: block;
-}
-
-.profile-stats span {
-    margin-top: 4px;
-
-    color: var(--study-muted);
-    font-size: 0.68rem;
-}
-
-.profile-badges {
-    margin-top: 30px;
-}
-
-#profileBadges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    margin-top: 12px;
-}
-
-.badge-placeholder {
-    width: 48px;
-    height: 48px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 13px;
-
-    background: #eef2ff;
-
-    font-size: 1.4rem;
-}
-
-
-/* =========================================================
-   MODALS
-========================================================= */
-
-.modal-overlay {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 200;
-
-    display: none;
-    place-items: center;
-
-    padding: 20px;
-
-    background: rgba(5, 5, 8, 0.7);
-
-    backdrop-filter: blur(8px);
-}
-
-.modal-overlay.open {
-    display: grid;
-
-    animation: fadeIn 0.25s ease both;
-}
-
-.modal-card {
-    width: min(560px, 100%);
-
-    max-height: 90vh;
-    overflow-y: auto;
-
-    padding: 28px;
-
-    border-radius: var(--radius-xl);
-
-    background: white;
-    color: var(--study-text);
-
-    box-shadow: var(--shadow-lg);
-
-    animation: modalIn 0.4s var(--transition) both;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-
-    margin-bottom: 25px;
-}
-
-.modal-header h2 {
-    margin-top: 5px;
-}
-
-.modal-close {
-    width: 38px;
-    height: 38px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 50%;
-
-    background: #f0f2f5;
-    color: #606878;
-
-    font-size: 1.2rem;
-
-    transition: var(--transition-fast);
-}
-
-.modal-close:hover {
-    transform: rotate(90deg);
-    background: #e6e8ec;
-}
-
-.modal-card form {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.modal-card label {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-
-    color: var(--study-muted);
-
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.modal-exercise-demo {
-    height: 210px;
-
-    display: grid;
-    place-items: center;
-
-    margin-bottom: 20px;
-
-    border-radius: 20px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #17181d,
-            #252831
-        );
-
-    font-size: 6rem;
-}
-
-.exercise-modal-card > h2 {
-    margin-top: 8px;
-}
-
-.exercise-modal-card > p {
-    margin-top: 7px;
-    color: var(--study-muted);
-    line-height: 1.6;
-}
-
-.exercise-detail-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 9px;
-
-    margin-top: 20px;
-}
-
-.exercise-detail-grid div {
-    padding: 15px;
-
-    text-align: center;
-
-    border-radius: 12px;
-    background: var(--study-surface-soft);
-}
-
-.exercise-detail-grid span,
-.exercise-detail-grid strong {
-    display: block;
-}
-
-.exercise-detail-grid span {
-    color: var(--study-muted);
-
-    font-size: 0.62rem;
-    font-weight: 800;
-}
-
-.exercise-detail-grid strong {
-    margin-top: 4px;
-}
-
-.exercise-tips {
-    margin: 20px 0;
-
-    padding: 15px;
-
-    border-radius: 13px;
-
-    background: #fff8e7;
-}
-
-.exercise-tips p {
-    margin-top: 5px;
-
-    color: #716a5b;
-    font-size: 0.8rem;
-}
-
-
-/* =========================================================
-   ACHIEVEMENT
-========================================================= */
-
-.achievement-unlock,
-.record-celebration {
-    position: relative;
-
-    width: min(450px, 100%);
-
-    padding: 45px 30px;
-
-    text-align: center;
-
-    overflow: hidden;
-
-    border-radius: 32px;
-
-    background:
-        radial-gradient(
-            circle at 50% 0%,
-            rgba(139, 92, 246, 0.15),
-            transparent 45%
-        ),
-        white;
-
-    box-shadow: var(--shadow-lg);
-
-    animation: achievementPop 0.65s cubic-bezier(0.2, 1.4, 0.3, 1) both;
-}
-
-.unlock-sticker,
-.record-icon {
-    width: 110px;
-    height: 110px;
-
-    display: grid;
-    place-items: center;
-
-    margin: 0 auto 20px;
-
-    border-radius: 30px;
-
-    background: #eef2ff;
-
-    font-size: 4.2rem;
-
-    animation: stickerBounce 1.2s ease both;
-}
-
-.achievement-unlock h2,
-.record-celebration h2 {
-    margin-top: 10px;
-
-    font-size: 2rem;
-}
-
-.achievement-unlock p,
-.record-celebration p {
-    margin-top: 8px;
-
-    color: var(--study-muted);
-    line-height: 1.6;
-}
-
-#unlockXP {
-    display: block;
-
-    margin: 20px 0;
-
-    color: #7c3aed;
-
-    font-size: 1.3rem;
-}
-
-.achievement-confetti {
-    position: absolute;
-    inset: 0;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   GAMES
-========================================================= */
-
-.game-modal {
-    text-align: center;
-}
-
-.game-area {
-    min-height: 240px;
-
-    display: grid;
-    place-items: center;
-
-    margin: 20px 0;
-
-    border-radius: 20px;
-
-    background: var(--study-surface-soft);
-}
-
-#gameResult {
-    min-height: 25px;
-    margin-bottom: 12px;
-    font-weight: 800;
-}
-
-
-/* =========================================================
-   FOCUS MODE
-========================================================= */
-
-.focus-mode-overlay {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 500;
-
-    display: none;
-    place-items: center;
-
-    background:
-        radial-gradient(
-            circle at center,
-            #15152a,
-            #06060a 65%
-        );
-
-    color: white;
-}
-
-.focus-mode-overlay.open {
-    display: grid;
-    animation: fadeIn 0.4s ease both;
-}
-
-.focus-mode-content {
-    text-align: center;
-}
-
-.focus-mode-content .eyebrow {
-    color: #8b5cf6;
-}
-
-.focus-mode-timer {
-    margin-top: 15px;
-
-    font-size: clamp(6rem, 18vw, 13rem);
-
-    font-weight: 850;
-    line-height: 0.9;
-
-    letter-spacing: -0.08em;
-}
-
-.focus-mode-content p {
-    margin: 20px 0 30px;
+    today.active = true;
 
-    color: #9999a8;
+    saveState();
 }
 
 
@@ -3018,525 +259,5047 @@ input:focus {
    TOASTS
 ========================================================= */
 
-.toast-container {
-    position: fixed;
+function showToast(message, icon = "✨") {
 
-    right: 22px;
-    bottom: 22px;
+    const container = $("#toastContainer");
 
-    z-index: 600;
+    if (!container) return;
 
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    const toast = document.createElement("div");
 
-    width: min(350px, calc(100% - 44px));
-}
+    toast.className = "toast";
 
-.toast {
-    padding: 15px 17px;
+    toast.innerHTML = `
+        <strong>${icon}</strong>
+        <span style="margin-left:8px">
+            ${escapeHTML(message)}
+        </span>
+    `;
 
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 13px;
+    container.appendChild(toast);
 
-    background: #15151c;
-    color: white;
-
-    box-shadow: var(--shadow-lg);
-
-    animation:
-        toastIn 0.4s ease both,
-        toastOut 0.4s 3.8s ease forwards;
+    setTimeout(() => {
+        toast.remove();
+    }, 4300);
 }
 
 
 /* =========================================================
-   EMPTY STATES
+   MODE SELECTION
 ========================================================= */
 
-.empty-state {
-    display: grid;
-    place-items: center;
+function enterStudyMode() {
 
-    padding: 40px;
+    state.currentMode = "study";
 
-    text-align: center;
+    saveState();
 
-    color: var(--study-muted);
+    $("#modeSelection").style.display = "none";
+    $("#workoutApp").classList.remove("active");
+
+    $("#studyApp").classList.add("active");
+
+    showStudyPage("study-dashboard");
+
+    updateAll();
+
+    animatePage("#studyApp");
 }
 
-.empty-state span {
-    font-size: 2rem;
-    margin-bottom: 8px;
+
+function enterWorkoutMode() {
+
+    state.currentMode = "workout";
+
+    saveState();
+
+    $("#modeSelection").style.display = "none";
+    $("#studyApp").classList.remove("active");
+
+    $("#workoutApp").classList.add("active");
+
+    showWorkoutPage("workout-dashboard");
+
+    updateAll();
+
+    animatePage("#workoutApp");
+}
+
+
+function returnToModes() {
+
+    stopPomodoro();
+
+    stopWorkoutTimer();
+
+    state.currentMode = "selection";
+
+    saveState();
+
+    $("#studyApp").classList.remove("active");
+    $("#workoutApp").classList.remove("active");
+
+    $("#modeSelection").style.display = "block";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function animatePage(selector) {
+
+    const element = $(selector);
+
+    if (!element) return;
+
+    element.style.animation = "none";
+
+    requestAnimationFrame(() => {
+
+        element.style.animation =
+            "pageEnter 0.55s cubic-bezier(.2,.8,.2,1) both";
+
+    });
 }
 
 
 /* =========================================================
-   ANIMATIONS
+   STUDY NAVIGATION
 ========================================================= */
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+function showStudyPage(pageId) {
+
+    $$(".study-navigation .nav-item")
+        .forEach((button) => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.studyPage === pageId
+            );
+        });
+
+
+    $$("#studyApp .internal-page")
+        .forEach((page) => {
+
+            page.classList.toggle(
+                "active-page",
+                page.id === pageId
+            );
+        });
+
+
+    state.currentStudyPage = pageId;
+
+    saveState();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   WORKOUT NAVIGATION
+========================================================= */
+
+function showWorkoutPage(pageId) {
+
+    $$(".workout-navigation .nav-item")
+        .forEach((button) => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.workoutPage === pageId
+            );
+        });
+
+
+    $$("#workoutApp .internal-page")
+        .forEach((page) => {
+
+            page.classList.toggle(
+                "active-page",
+                page.id === pageId
+            );
+        });
+
+
+    state.currentWorkoutPage = pageId;
+
+    saveState();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   GREETING
+========================================================= */
+
+function updateGreeting() {
+
+    const hour = new Date().getHours();
+
+    let greeting = "Good evening";
+
+    if (hour < 12) {
+        greeting = "Good morning";
+    } else if (hour < 18) {
+        greeting = "Good afternoon";
     }
 
-    to {
-        opacity: 1;
+    const greetingElement = $("#studyGreeting");
+
+    if (greetingElement) {
+        greetingElement.textContent =
+            `${state.user.name}`;
+    }
+
+    const dateElement = $("#studyCurrentDate");
+
+    if (dateElement) {
+
+        const date = new Date();
+
+        dateElement.textContent =
+            `${greeting} · ${date.toLocaleDateString(
+                undefined,
+                {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric"
+                }
+            )}`;
+    }
+
+    const workoutDate = $("#workoutDate");
+
+    if (workoutDate) {
+
+        workoutDate.textContent =
+            new Date().toLocaleDateString(
+                undefined,
+                {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric"
+                }
+            );
     }
 }
 
-@keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(18px);
+
+/* =========================================================
+   DAILY QUOTES
+========================================================= */
+
+const studyQuotes = [
+
+    "The secret of getting ahead is getting started.",
+    "Small progress is still progress.",
+    "Focus on the work, not the clock.",
+    "One focused hour can change your entire day.",
+    "Discipline beats motivation when motivation disappears.",
+    "Your future self will thank you.",
+    "Don't study harder. Study with intention."
+];
+
+
+const workoutQuotes = [
+
+    "The pain you feel today will be the strength you feel tomorrow.",
+    "You don't have to be extreme. Just consistent.",
+    "Strong body. Strong mind.",
+    "One more rep.",
+    "Show up. Put in the work. Repeat.",
+    "Your only competition is yesterday's you.",
+    "Earn your strength."
+];
+
+
+function getDailyQuote(array) {
+
+    const date = new Date();
+
+    const index =
+        (date.getFullYear() +
+            date.getMonth() +
+            date.getDate()) %
+        array.length;
+
+    return array[index];
+}
+
+
+function updateQuotes() {
+
+    const studyQuote = $("#studyDailyQuote");
+
+    if (studyQuote) {
+        studyQuote.textContent =
+            getDailyQuote(studyQuotes);
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    const workoutQuote = $("#workoutQuote");
+
+    if (workoutQuote) {
+        workoutQuote.textContent =
+            getDailyQuote(workoutQuotes);
     }
 }
 
-@keyframes fadeDown {
-    from {
-        opacity: 0;
-        transform: translateY(-18px);
+
+/* =========================================================
+   STUDY DASHBOARD
+========================================================= */
+
+function updateStudyDashboard() {
+
+    const today = ensureTodayHistory();
+
+    const studyToday = today.studyMinutes;
+    const pomodoros = today.pomodoros;
+    const tasks = today.tasksCompleted;
+
+    const studyTime = $("#studyTodayTime");
+    const pomodoroCount = $("#studyPomodoros");
+    const taskCount = $("#studyTasksCompleted");
+    const progress = $("#studyDailyProgress");
+
+    if (studyTime) {
+        studyTime.textContent =
+            formatMinutes(studyToday);
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    if (pomodoroCount) {
+        pomodoroCount.textContent =
+            pomodoros;
+    }
+
+    if (taskCount) {
+        taskCount.textContent =
+            tasks;
+    }
+
+    const studyPercentage =
+        clamp(
+            Math.round(
+                (studyToday /
+                    Math.max(1, state.goals.studyMinutes)) *
+                100
+            ),
+            0,
+            100
+        );
+
+    if (progress) {
+        progress.textContent =
+            `${studyPercentage}%`;
+    }
+
+
+    /* GOALS */
+
+    $("#studyGoalText").textContent =
+        `${studyToday} / ${state.goals.studyMinutes} min`;
+
+    $("#pomodoroGoalText").textContent =
+        `${pomodoros} / ${state.goals.pomodoros}`;
+
+    $("#studyTaskGoalText").textContent =
+        `${tasks} / ${state.goals.tasks}`;
+
+
+    animateProgress(
+        "#studyGoalProgress",
+        studyToday / state.goals.studyMinutes
+    );
+
+    animateProgress(
+        "#pomodoroGoalProgress",
+        pomodoros / state.goals.pomodoros
+    );
+
+    animateProgress(
+        "#studyTaskGoalProgress",
+        tasks / state.goals.tasks
+    );
+
+
+    updatePriorityTasks();
+    updateStudyStreak();
+}
+
+
+function animateProgress(selector, ratio) {
+
+    const element = $(selector);
+
+    if (!element) return;
+
+    const percentage =
+        clamp(ratio * 100, 0, 100);
+
+    requestAnimationFrame(() => {
+
+        element.style.width =
+            `${percentage}%`;
+    });
+}
+
+
+/* =========================================================
+   STUDY STREAK
+========================================================= */
+
+function updateStudyStreak() {
+
+    const streak = calculateStreak(
+        "studyMinutes"
+    );
+
+    state.user.studyStreak = streak;
+
+    const element = $("#studyStreak");
+
+    if (element) {
+        element.textContent = streak;
     }
 }
 
-@keyframes cardEntrance {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.97);
+
+function calculateStreak(activityKey) {
+
+    let streak = 0;
+
+    const date = new Date();
+
+    while (true) {
+
+        const key = [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0")
+        ].join("-");
+
+        const day = state.history[key];
+
+        if (!day || !(day[activityKey] > 0)) {
+            break;
+        }
+
+        streak++;
+
+        date.setDate(
+            date.getDate() - 1
+        );
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+    return streak;
+}
+
+
+/* =========================================================
+   TASKS
+========================================================= */
+
+let currentTaskFilter = "all";
+
+
+function openTaskModal() {
+
+    $("#taskModal").classList.add("open");
+    $("#taskModal").setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    setTimeout(() => {
+        $("#taskTitle")?.focus();
+    }, 100);
+}
+
+
+function closeTaskModal() {
+
+    $("#taskModal").classList.remove("open");
+    $("#taskModal").setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+function createTask(event) {
+
+    event.preventDefault();
+
+    const title =
+        $("#taskTitle").value.trim();
+
+    if (!title) return;
+
+
+    const task = {
+
+        id: generateId(),
+
+        title,
+
+        priority:
+            $("#taskPriority").value,
+
+        subject:
+            $("#taskSubject").value,
+
+        dueDate:
+            $("#taskDueDate").value,
+
+        estimatedTime:
+            Number(
+                $("#taskEstimatedTime").value
+            ) || 25,
+
+        completed: false,
+
+        createdAt: Date.now()
+    };
+
+
+    state.tasks.push(task);
+
+    saveState();
+
+    $("#taskForm").reset();
+
+    closeTaskModal();
+
+    renderTasks();
+    updatePriorityTasks();
+
+    showToast(
+        "Task added successfully.",
+        "✓"
+    );
+}
+
+
+function isTaskOverdue(task) {
+
+    if (!task.dueDate || task.completed) {
+        return false;
+    }
+
+    return task.dueDate < todayKey();
+}
+
+
+function completeTask(id) {
+
+    const task =
+        state.tasks.find(
+            (item) => item.id === id
+        );
+
+    if (!task || task.completed) return;
+
+    task.completed = true;
+
+    const today = ensureTodayHistory();
+
+    today.tasksCompleted++;
+
+    state.study.tasksCompleted++;
+
+    markActivity();
+
+    addXP(20);
+
+    checkAchievements();
+
+    saveState();
+
+    renderTasks();
+    updateStudyDashboard();
+
+    showToast(
+        "Task completed! +20 XP",
+        "🎯"
+    );
+}
+
+
+function renderTasks() {
+
+    const container = $("#taskList");
+
+    if (!container) return;
+
+    let tasks = [...state.tasks];
+
+
+    if (currentTaskFilter === "active") {
+
+        tasks = tasks.filter(
+            (task) => !task.completed
+        );
+
+    } else if (currentTaskFilter === "completed") {
+
+        tasks = tasks.filter(
+            (task) => task.completed
+        );
+
+    } else if (currentTaskFilter === "overdue") {
+
+        tasks = tasks.filter(
+            (task) => isTaskOverdue(task)
+        );
+    }
+
+
+    const sortMode =
+        $("#taskSort")?.value ||
+        "priority";
+
+
+    if (sortMode === "priority") {
+
+        const rank = {
+            high: 1,
+            medium: 2,
+            low: 3
+        };
+
+        tasks.sort(
+            (a, b) =>
+                rank[a.priority] -
+                rank[b.priority]
+        );
+
+    } else if (sortMode === "due") {
+
+        tasks.sort(
+            (a, b) =>
+                (a.dueDate || "9999") >
+                (b.dueDate || "9999")
+                    ? 1
+                    : -1
+        );
+
+    } else {
+
+        tasks.sort(
+            (a, b) =>
+                b.createdAt -
+                a.createdAt
+        );
+    }
+
+
+    if (!tasks.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <span>✓</span>
+                <p>No tasks here.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        tasks.map(task => {
+
+            const overdue =
+                isTaskOverdue(task);
+
+            return `
+                <article
+                    class="task-item ${
+                        task.completed
+                            ? "completed"
+                            : ""
+                    }"
+                    data-task-id="${task.id}"
+                >
+
+                    <button
+                        class="task-checkbox"
+                        data-complete-task="${task.id}"
+                        aria-label="Complete task"
+                        type="button"
+                    >
+                        ${task.completed ? "✓" : ""}
+                    </button>
+
+                    <div class="task-info">
+
+                        <div class="task-title">
+                            ${escapeHTML(task.title)}
+                        </div>
+
+                        <div class="task-meta">
+
+                            <span>
+                                ${escapeHTML(task.subject)}
+                            </span>
+
+                            <span>
+                                ${task.estimatedTime} min
+                            </span>
+
+                            ${
+                                task.dueDate
+                                    ? `
+                                    <span class="${
+                                        overdue
+                                            ? "overdue"
+                                            : ""
+                                    }">
+                                        ${
+                                            overdue
+                                                ? "Overdue"
+                                                : task.dueDate
+                                        }
+                                    </span>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <span
+                        class="priority-badge priority-${task.priority}"
+                    >
+                        ${task.priority}
+                    </span>
+
+                    ${
+                        !task.completed
+                            ? `
+                            <button
+                                class="small-button task-focus-button"
+                                data-focus-task="${task.id}"
+                                type="button"
+                                title="Start Pomodoro"
+                            >
+                                ⏱
+                            </button>
+                            `
+                            : ""
+                    }
+
+                </article>
+            `;
+        }).join("");
+}
+
+
+function updatePriorityTasks() {
+
+    const container =
+        $("#studyPriorityTasks");
+
+    if (!container) return;
+
+    const tasks =
+        state.tasks
+            .filter(
+                task => !task.completed
+            )
+            .sort((a, b) => {
+
+                const rank = {
+                    high: 1,
+                    medium: 2,
+                    low: 3
+                };
+
+                return (
+                    rank[a.priority] -
+                    rank[b.priority]
+                );
+            })
+            .slice(0, 4);
+
+
+    if (!tasks.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <span>✓</span>
+                <p>No priority tasks yet.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        tasks.map(task => {
+
+            return `
+                <div class="priority-item">
+
+                    <div class="priority-item-left">
+
+                        <span
+                            class="priority-dot priority-${task.priority}"
+                        ></span>
+
+                        <span>
+                            ${escapeHTML(task.title)}
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="text-button"
+                        data-focus-task="${task.id}"
+                        type="button"
+                    >
+                        Focus
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+
+/* =========================================================
+   TASK → POMODORO
+========================================================= */
+
+function focusTask(id) {
+
+    const task =
+        state.tasks.find(
+            item => item.id === id
+        );
+
+    if (!task) return;
+
+    showStudyPage("study-focus");
+
+    const select = $("#pomodoroTask");
+
+    if (select) {
+
+        select.value = task.id;
+    }
+
+    state.study.currentSubject =
+        task.subject || "General";
+
+    if ($("#subjectSelect")) {
+        $("#subjectSelect").value =
+            task.subject || "General";
+    }
+
+    updateTimerSubject();
+
+    showToast(
+        `Focus task selected: ${task.title}`,
+        "⏱"
+    );
+}
+
+
+/* =========================================================
+   SUBJECTS
+========================================================= */
+
+function renderSubjects() {
+
+    const select = $("#subjectSelect");
+    const taskSubject = $("#taskSubject");
+    const grid = $("#subjectGrid");
+
+    const subjects = [
+        ...new Set(
+            state.study.subjects
+        )
+    ];
+
+
+    if (select) {
+
+        const current =
+            state.study.currentSubject ||
+            "General";
+
+        select.innerHTML =
+            subjects.map(subject => `
+                <option value="${escapeHTML(subject)}">
+                    ${escapeHTML(subject)}
+                </option>
+            `).join("");
+
+        select.value = current;
+    }
+
+
+    if (taskSubject) {
+
+        taskSubject.innerHTML =
+            subjects.map(subject => `
+                <option value="${escapeHTML(subject)}">
+                    ${escapeHTML(subject)}
+                </option>
+            `).join("");
+    }
+
+
+    if (!grid) return;
+
+
+    grid.innerHTML =
+        subjects.map((subject, index) => {
+
+            const total =
+                Object.values(state.history)
+                    .reduce(
+                        (sum, day) =>
+                            sum +
+                            (day.subjects?.[subject] || 0),
+                        0
+                    );
+
+            const icons = [
+                "📚",
+                "🧮",
+                "⚡",
+                "💻",
+                "🔬",
+                "📖"
+            ];
+
+            return `
+                <article class="subject-card">
+
+                    <div class="subject-card-icon">
+                        ${icons[index % icons.length]}
+                    </div>
+
+                    <h3>
+                        ${escapeHTML(subject)}
+                    </h3>
+
+                    <p>
+                        ${formatMinutes(total)}
+                        studied
+                    </p>
+
+                </article>
+            `;
+
+        }).join("");
+}
+
+
+function addSubject() {
+
+    const name =
+        prompt("Enter the subject name:");
+
+    if (!name) return;
+
+    const clean =
+        name.trim();
+
+    if (!clean) return;
+
+
+    if (
+        state.study.subjects
+            .some(
+                subject =>
+                    subject.toLowerCase() ===
+                    clean.toLowerCase()
+            )
+    ) {
+
+        showToast(
+            "That subject already exists.",
+            "ℹ️"
+        );
+
+        return;
+    }
+
+
+    state.study.subjects.push(clean);
+
+    saveState();
+
+    renderSubjects();
+
+    showToast(
+        `${clean} added.`,
+        "📚"
+    );
+}
+
+
+/* =========================================================
+   POMODORO
+========================================================= */
+
+let pomodoro = {
+
+    running: false,
+
+    mode: "focus",
+
+    focusMinutes: 25,
+
+    breakMinutes: 5,
+
+    remaining: 25 * 60,
+
+    session: 1,
+
+    interval: null
+};
+
+
+function updatePomodoroDisplay() {
+
+    const formatted =
+        formatTimer(
+            pomodoro.remaining
+        );
+
+    const timer =
+        $("#pomodoroTimer");
+
+    if (timer) {
+        timer.textContent =
+            formatted;
+    }
+
+    const mini =
+        $("#studyMiniTimer");
+
+    if (mini) {
+        mini.textContent =
+            formatted;
+    }
+
+    const focusModeTimer =
+        $("#focusModeTimer");
+
+    if (focusModeTimer) {
+        focusModeTimer.textContent =
+            formatted;
+    }
+
+    const status =
+        $("#timerStatus");
+
+    if (status) {
+
+        status.textContent =
+            pomodoro.running
+                ? pomodoro.mode === "focus"
+                    ? "FOCUSING"
+                    : "BREAK"
+                : "READY";
+    }
+
+    const miniStatus =
+        $("#studyMiniTimerStatus");
+
+    if (miniStatus) {
+
+        miniStatus.textContent =
+            pomodoro.running
+                ? pomodoro.mode === "focus"
+                    ? "Focusing..."
+                    : "Taking a break..."
+                : "Ready";
+    }
+
+    const session =
+        $("#currentSession");
+
+    if (session) {
+
+        session.textContent =
+            pomodoro.mode === "focus"
+                ? `Focus Session ${pomodoro.session}`
+                : "Break";
+    }
+
+    const subjectLabel =
+        $("#timerSubjectLabel");
+
+    if (subjectLabel) {
+
+        subjectLabel.textContent =
+            state.study.currentSubject
+                .toUpperCase();
     }
 }
 
-@keyframes pageEnter {
-    from {
-        opacity: 0;
-        transform: scale(0.985);
+
+function updateTimerSubject() {
+
+    const select =
+        $("#subjectSelect");
+
+    if (select) {
+
+        state.study.currentSubject =
+            select.value;
     }
 
-    to {
-        opacity: 1;
-        transform: scale(1);
+    updatePomodoroDisplay();
+
+    saveState();
+}
+
+
+function startPomodoro() {
+
+    if (pomodoro.running) return;
+
+    pomodoro.running = true;
+
+    updatePomodoroDisplay();
+
+
+    pomodoro.interval =
+        setInterval(() => {
+
+            pomodoro.remaining--;
+
+            updatePomodoroDisplay();
+
+
+            if (pomodoro.remaining <= 0) {
+
+                pomodoroComplete();
+            }
+
+        }, 1000);
+
+
+    showToast(
+        pomodoro.mode === "focus"
+            ? "Focus session started."
+            : "Break started.",
+        pomodoro.mode === "focus"
+            ? "🍅"
+            : "🌿"
+    );
+}
+
+
+function pausePomodoro() {
+
+    if (!pomodoro.running) return;
+
+    pomodoro.running = false;
+
+    clearInterval(
+        pomodoro.interval
+    );
+
+    pomodoro.interval = null;
+
+    updatePomodoroDisplay();
+
+    showToast(
+        "Timer paused.",
+        "⏸"
+    );
+}
+
+
+function stopPomodoro() {
+
+    clearInterval(
+        pomodoro.interval
+    );
+
+    pomodoro.interval = null;
+
+    pomodoro.running = false;
+}
+
+
+function resetPomodoro() {
+
+    stopPomodoro();
+
+    pomodoro.mode = "focus";
+
+    pomodoro.remaining =
+        pomodoro.focusMinutes * 60;
+
+    updatePomodoroDisplay();
+
+    showToast(
+        "Timer reset.",
+        "↻"
+    );
+}
+
+
+function setPomodoroPreset(
+    focus,
+    breakMinutes
+) {
+
+    stopPomodoro();
+
+    pomodoro.focusMinutes =
+        Number(focus);
+
+    pomodoro.breakMinutes =
+        Number(breakMinutes);
+
+    pomodoro.mode = "focus";
+
+    pomodoro.remaining =
+        pomodoro.focusMinutes * 60;
+
+    $$(".timer-preset")
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                Number(button.dataset.focus) ===
+                Number(focus)
+            );
+        });
+
+    updatePomodoroDisplay();
+}
+
+
+function pomodoroComplete() {
+
+    stopPomodoro();
+
+    if (pomodoro.mode === "focus") {
+
+        const minutes =
+            pomodoro.focusMinutes;
+
+        const today =
+            ensureTodayHistory();
+
+        today.studyMinutes += minutes;
+        today.pomodoros++;
+
+        state.study.totalMinutes += minutes;
+        state.study.pomodoros++;
+
+        const subject =
+            state.study.currentSubject ||
+            "General";
+
+
+        if (!today.subjects) {
+            today.subjects = {};
+        }
+
+        today.subjects[subject] =
+            (today.subjects[subject] || 0) +
+            minutes;
+
+
+        state.records.studyMinutes =
+            Math.max(
+                state.records.studyMinutes,
+                today.studyMinutes
+            );
+
+
+        state.records.pomodoros =
+            Math.max(
+                state.records.pomodoros,
+                today.pomodoros
+            );
+
+
+        markActivity();
+
+        addXP(50);
+
+        checkAchievements();
+
+        showToast(
+            "Focus session complete! +50 XP",
+            "🍅"
+        );
+
+
+        pomodoro.mode = "break";
+
+        pomodoro.remaining =
+            pomodoro.breakMinutes * 60;
+
+        updatePomodoroDisplay();
+
+        updateAll();
+
+        playNotificationSound();
+
+    } else {
+
+        pomodoro.mode = "focus";
+
+        pomodoro.session++;
+
+        pomodoro.remaining =
+            pomodoro.focusMinutes * 60;
+
+        updatePomodoroDisplay();
+
+        showToast(
+            "Break complete. Back to work! 💪",
+            "🔥"
+        );
+
+        playNotificationSound();
+    }
+
+    saveState();
+}
+
+
+function startMiniPomodoro() {
+
+    showStudyPage("study-focus");
+
+    startPomodoro();
+}
+
+
+/* =========================================================
+   BREAK TIMER
+========================================================= */
+
+let breakInterval = null;
+let breakSeconds = 300;
+
+
+function startBreakTimer() {
+
+    clearInterval(breakInterval);
+
+    breakSeconds =
+        pomodoro.breakMinutes * 60;
+
+    updateBreakTimer();
+
+
+    breakInterval =
+        setInterval(() => {
+
+            breakSeconds--;
+
+            updateBreakTimer();
+
+
+            if (breakSeconds <= 0) {
+
+                clearInterval(
+                    breakInterval
+                );
+
+                showToast(
+                    "Break finished!",
+                    "🌿"
+                );
+
+                playNotificationSound();
+            }
+
+        }, 1000);
+}
+
+
+function updateBreakTimer() {
+
+    const element =
+        $("#breakTimer");
+
+    if (element) {
+
+        element.textContent =
+            formatTimer(breakSeconds);
     }
 }
 
-@keyframes modalIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.96);
-    }
 
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+/* =========================================================
+   MUSIC / SOUNDS
+========================================================= */
+
+const soundNames = {
+
+    lofi: "Lo-Fi Focus",
+    rain: "Rain",
+    cafe: "Café",
+    ocean: "Ocean",
+    forest: "Forest",
+    fireplace: "Fireplace",
+    classical: "Classical",
+    "white-noise": "White Noise"
+};
+
+
+function selectSound(sound) {
+
+    state.music.current =
+        sound;
+
+    state.music.playing =
+        true;
+
+    $("#currentTrack").textContent =
+        soundNames[sound] ||
+        "Study Sound";
+
+
+    $$(".sound-option")
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.sound === sound
+            );
+        });
+
+
+    updateMusicButton();
+
+    saveState();
+
+    showToast(
+        `${soundNames[sound]} selected.`,
+        "🎧"
+    );
+}
+
+
+function toggleMusic() {
+
+    state.music.playing =
+        !state.music.playing;
+
+    updateMusicButton();
+
+    saveState();
+
+    showToast(
+        state.music.playing
+            ? "Sound on."
+            : "Sound paused.",
+        state.music.playing
+            ? "▶"
+            : "⏸"
+    );
+}
+
+
+function updateMusicButton() {
+
+    const button =
+        $("#musicPlay");
+
+    if (button) {
+
+        button.textContent =
+            state.music.playing
+                ? "❚❚"
+                : "▶";
     }
 }
 
-@keyframes achievementPop {
-    from {
-        opacity: 0;
-        transform: scale(0.65) translateY(30px);
-    }
 
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
+function changeTrack(direction) {
+
+    const sounds =
+        Object.keys(soundNames);
+
+    let index =
+        sounds.indexOf(
+            state.music.current
+        );
+
+    index =
+        (index + direction + sounds.length) %
+        sounds.length;
+
+    selectSound(
+        sounds[index]
+    );
+}
+
+
+/* =========================================================
+   FOCUS MODE
+========================================================= */
+
+function openFocusMode() {
+
+    const overlay =
+        $("#focusModeOverlay");
+
+    if (!overlay) return;
+
+    overlay.classList.add("open");
+
+    overlay.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    updatePomodoroDisplay();
+
+    document.body.style.overflow =
+        "hidden";
+
+    if (
+        document.documentElement.requestFullscreen
+    ) {
+
+        document.documentElement
+            .requestFullscreen()
+            .catch(() => {});
     }
 }
 
-@keyframes stickerBounce {
+
+function closeFocusMode() {
+
+    const overlay =
+        $("#focusModeOverlay");
+
+    if (!overlay) return;
+
+    overlay.classList.remove("open");
+
+    overlay.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    document.body.style.overflow =
+        "";
+
+    if (document.fullscreenElement) {
+
+        document.exitFullscreen()
+            .catch(() => {});
+    }
+}
+
+
+/* =========================================================
+   WORKOUT DATA
+========================================================= */
+
+const exercises = [
+
+    {
+        id: "pushups",
+        name: "Push Ups",
+        muscle: "Chest",
+        icon: "💪",
+        description:
+            "A classic bodyweight movement for the chest, shoulders and triceps.",
+        sets: 3,
+        reps: 12,
+        rest: 60,
+        tips:
+            "Keep your core tight and lower your chest with control."
+    },
+
+    {
+        id: "squats",
+        name: "Squats",
+        muscle: "Legs",
+        icon: "🦵",
+        description:
+            "A fundamental lower-body movement targeting the quads and glutes.",
+        sets: 3,
+        reps: 12,
+        rest: 75,
+        tips:
+            "Keep your chest up and drive through your feet."
+    },
+
+    {
+        id: "lunges",
+        name: "Lunges",
+        muscle: "Legs",
+        icon: "🏃",
+        description:
+            "A unilateral movement that challenges your legs and balance.",
+        sets: 3,
+        reps: 10,
+        rest: 60,
+        tips:
+            "Take a controlled step and keep your front knee stable."
+    },
+
+    {
+        id: "plank",
+        name: "Plank",
+        muscle: "Core",
+        icon: "🧘",
+        description:
+            "An isometric core exercise that builds stability.",
+        sets: 3,
+        reps: "30s",
+        rest: 45,
+        tips:
+            "Keep your hips level and brace your core."
+    },
+
+    {
+        id: "shoulderpress",
+        name: "Shoulder Press",
+        muscle: "Shoulders",
+        icon: "🏋️",
+        description:
+            "Press weight overhead to build shoulder strength.",
+        sets: 3,
+        reps: 10,
+        rest: 75,
+        tips:
+            "Avoid excessive arching and control the descent."
+    },
+
+    {
+        id: "rows",
+        name: "Rows",
+        muscle: "Back",
+        icon: "💪",
+        description:
+            "A pulling movement that develops the upper back.",
+        sets: 3,
+        reps: 10,
+        rest: 75,
+        tips:
+            "Pull toward your torso and squeeze your shoulder blades."
+    },
+
+    {
+        id: "burpees",
+        name: "Burpees",
+        muscle: "Full Body",
+        icon: "🔥",
+        description:
+            "A high-intensity movement combining strength and cardio.",
+        sets: 3,
+        reps: 10,
+        rest: 90,
+        tips:
+            "Keep your pace controlled and land softly."
+    },
+
+    {
+        id: "jumpingjacks",
+        name: "Jumping Jacks",
+        muscle: "Cardio",
+        icon: "⚡",
+        description:
+            "A simple full-body cardio movement.",
+        sets: 3,
+        reps: 30,
+        rest: 45,
+        tips:
+            "Stay light on your feet and maintain a steady rhythm."
+    }
+
+];
+
+
+const workoutPlans = {
+
+    "full-body": [
+        "pushups",
+        "squats",
+        "rows",
+        "shoulderpress",
+        "lunges",
+        "plank",
+        "burpees"
+    ],
+
+    "upper-lower": [
+        "pushups",
+        "rows",
+        "shoulderpress",
+        "squats",
+        "lunges",
+        "plank"
+    ],
+
+    "ppl": [
+        "pushups",
+        "shoulderpress",
+        "rows",
+        "squats",
+        "lunges",
+        "burpees"
+    ],
+
+    cardio: [
+        "jumpingjacks",
+        "burpees",
+        "lunges",
+        "jumpingjacks",
+        "burpees"
+    ],
+
+    recovery: [
+        "plank",
+        "lunges",
+        "plank"
+    ]
+};
+
+
+let activeWorkout = {
+
+    name: "Full Body",
+
+    planId: "full-body",
+
+    exercises: [...workoutPlans["full-body"]],
+
+    index: 0,
+
+    currentSet: 1,
+
+    setsCompleted: 0,
+
+    startTime: null,
+
+    running: false
+};
+
+
+/* =========================================================
+   WORKOUT RENDERING
+========================================================= */
+
+function getExercise(id) {
+
+    return exercises.find(
+        exercise => exercise.id === id
+    );
+}
+
+
+function renderTodayExercises() {
+
+    const container =
+        $("#todayExerciseList");
+
+    if (!container) return;
+
+
+    const ids =
+        activeWorkout.exercises
+            .slice(0, 4);
+
+
+    container.innerHTML =
+        ids.map(id => {
+
+            const exercise =
+                getExercise(id);
+
+            if (!exercise) return "";
+
+            return `
+                <button
+                    class="exercise-preview"
+                    data-exercise="${exercise.id}"
+                    type="button"
+                >
+
+                    <span class="exercise-preview-icon">
+                        ${exercise.icon}
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(exercise.name)}
+                    </strong>
+
+                    <small>
+                        ${exercise.sets} × ${exercise.reps}
+                    </small>
+
+                </button>
+            `;
+
+        }).join("");
+}
+
+
+function renderExerciseLibrary(
+    search = ""
+) {
+
+    const container =
+        $("#exerciseLibrary");
+
+    if (!container) return;
+
+    const query =
+        search.trim().toLowerCase();
+
+    const filtered =
+        exercises.filter(exercise => {
+
+            return (
+                exercise.name
+                    .toLowerCase()
+                    .includes(query) ||
+
+                exercise.muscle
+                    .toLowerCase()
+                    .includes(query)
+            );
+        });
+
+
+    if (!filtered.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <span>🔎</span>
+                <p>No exercises found.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        filtered.map(exercise => {
+
+            return `
+                <button
+                    class="exercise-card"
+                    data-exercise="${exercise.id}"
+                    type="button"
+                >
+
+                    <div class="exercise-card-image">
+                        ${exercise.icon}
+                    </div>
+
+                    <h3>
+                        ${escapeHTML(exercise.name)}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(exercise.muscle)}
+                        ·
+                        ${exercise.sets} ×
+                        ${exercise.reps}
+                    </p>
+
+                </button>
+            `;
+
+        }).join("");
+}
+
+
+/* =========================================================
+   EXERCISE MODAL
+========================================================= */
+
+let selectedExercise = null;
+
+
+function openExerciseModal(id) {
+
+    const exercise =
+        getExercise(id);
+
+    if (!exercise) return;
+
+    selectedExercise =
+        exercise;
+
+
+    $("#modalExerciseMuscle").textContent =
+        exercise.muscle.toUpperCase();
+
+    $("#modalExerciseName").textContent =
+        exercise.name;
+
+    $("#modalExerciseDescription").textContent =
+        exercise.description;
+
+    $("#modalSets").textContent =
+        exercise.sets;
+
+    $("#modalReps").textContent =
+        exercise.reps;
+
+    $("#modalRest").textContent =
+        `${exercise.rest}s`;
+
+    $("#modalExerciseTips").textContent =
+        exercise.tips;
+
+    $$(".modal-exercise-demo")
+        .forEach(element => {
+
+            element.textContent =
+                exercise.icon;
+        });
+
+
+    $("#exerciseModal")
+        .classList.add("open");
+
+    $("#exerciseModal")
+        .setAttribute(
+            "aria-hidden",
+            "false"
+        );
+}
+
+
+function closeExerciseModal() {
+
+    $("#exerciseModal")
+        .classList.remove("open");
+
+    $("#exerciseModal")
+        .setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+    selectedExercise = null;
+}
+
+
+function addSelectedExerciseToWorkout() {
+
+    if (!selectedExercise) return;
+
+    activeWorkout.exercises.push(
+        selectedExercise.id
+    );
+
+    renderTodayExercises();
+
+    closeExerciseModal();
+
+    showToast(
+        `${selectedExercise.name} added to workout.`,
+        "💪"
+    );
+}
+
+
+/* =========================================================
+   WORKOUT PLANS
+========================================================= */
+
+function selectWorkoutPlan(planId) {
+
+    if (!workoutPlans[planId]) {
+        return;
+    }
+
+    activeWorkout.planId =
+        planId;
+
+    activeWorkout.exercises =
+        [...workoutPlans[planId]];
+
+    activeWorkout.index = 0;
+    activeWorkout.currentSet = 1;
+    activeWorkout.setsCompleted = 0;
+
+
+    const names = {
+
+        "full-body": "Full Body",
+
+        "upper-lower":
+            "Upper / Lower",
+
+        ppl:
+            "Push / Pull / Legs",
+
+        cardio:
+            "Cardio",
+
+        recovery:
+            "Recovery"
+    };
+
+
+    activeWorkout.name =
+        names[planId] ||
+        "Workout";
+
+
+    $("#activeWorkoutName").textContent =
+        activeWorkout.name;
+
+    $("#activeWorkoutMeta").textContent =
+        `${activeWorkout.exercises.length} exercises · ~45 minutes`;
+
+
+    renderTodayExercises();
+
+    showWorkoutPage(
+        "workout-dashboard"
+    );
+
+    showToast(
+        `${activeWorkout.name} selected.`,
+        "🔥"
+    );
+}
+
+
+/* =========================================================
+   WORKOUT SESSION
+========================================================= */
+
+function startWorkout() {
+
+    if (!activeWorkout.exercises.length) {
+        showToast(
+            "Add an exercise first.",
+            "ℹ️"
+        );
+        return;
+    }
+
+
+    activeWorkout.index = 0;
+    activeWorkout.currentSet = 1;
+    activeWorkout.setsCompleted = 0;
+    activeWorkout.startTime =
+        Date.now();
+    activeWorkout.running = true;
+
+
+    showWorkoutPage(
+        "workout-session"
+    );
+
+    updateWorkoutExercise();
+
+    startWorkoutTimer();
+
+    showToast(
+        "Workout started. LET'S GO! 🔥",
+        "🏋️"
+    );
+}
+
+
+function updateWorkoutExercise() {
+
+    const id =
+        activeWorkout.exercises[
+            activeWorkout.index
+        ];
+
+    const exercise =
+        getExercise(id);
+
+    if (!exercise) return;
+
+
+    $("#sessionWorkoutName").textContent =
+        activeWorkout.name;
+
+    $("#sessionWorkoutProgress").textContent =
+        `Exercise ${
+            activeWorkout.index + 1
+        } of ${
+            activeWorkout.exercises.length
+        }`;
+
+
+    $("#currentExercise").textContent =
+        exercise.name;
+
+    $("#currentExerciseDescription").textContent =
+        exercise.description;
+
+    $("#currentSet").textContent =
+        activeWorkout.currentSet;
+
+    $("#totalSets").textContent =
+        exercise.sets;
+
+    $("#targetReps").textContent =
+        exercise.reps;
+
+    $("#targetRest").textContent =
+        `${exercise.rest}s`;
+
+
+    $("#exerciseDemo").textContent =
+        exercise.icon;
+
+
+    updateWorkoutTimerDisplay();
+}
+
+
+let workoutTimerInterval = null;
+let workoutElapsed = 0;
+
+
+function startWorkoutTimer() {
+
+    clearInterval(
+        workoutTimerInterval
+    );
+
+    if (
+        activeWorkout.startTime
+    ) {
+
+        workoutElapsed =
+            Math.floor(
+                (
+                    Date.now() -
+                    activeWorkout.startTime
+                ) / 1000
+            );
+    } else {
+
+        workoutElapsed = 0;
+    }
+
+
+    workoutTimerInterval =
+        setInterval(() => {
+
+            workoutElapsed++;
+
+            updateWorkoutTimerDisplay();
+
+        }, 1000);
+}
+
+
+function stopWorkoutTimer() {
+
+    clearInterval(
+        workoutTimerInterval
+    );
+
+    workoutTimerInterval = null;
+}
+
+
+function updateWorkoutTimerDisplay() {
+
+    const timer =
+        $("#workoutTimer");
+
+    if (!timer) return;
+
+    timer.textContent =
+        formatTimer(
+            workoutElapsed
+        );
+}
+
+
+function completeSet() {
+
+    if (!activeWorkout.running) {
+
+        showToast(
+            "Start a workout first.",
+            "ℹ️"
+        );
+
+        return;
+    }
+
+
+    const exercise =
+        getExercise(
+            activeWorkout.exercises[
+                activeWorkout.index
+            ]
+        );
+
+    if (!exercise) return;
+
+
+    activeWorkout.setsCompleted++;
+
+    state.workout.totalSets++;
+
+    const today =
+        ensureTodayHistory();
+
+    today.sets++;
+
+
+    if (
+        activeWorkout.setsCompleted >
+        state.records.mostSets
+    ) {
+
+        state.records.mostSets =
+            activeWorkout.setsCompleted;
+
+        celebrateRecord(
+            "Most Sets",
+            `${activeWorkout.setsCompleted} sets`,
+            "You just beat your previous workout record!"
+        );
+    }
+
+
+    addXP(15);
+
+    saveState();
+
+    showToast(
+        `Set ${activeWorkout.currentSet} complete! +15 XP`,
+        "💪"
+    );
+
+
+    if (
+        activeWorkout.currentSet <
+        exercise.sets
+    ) {
+
+        activeWorkout.currentSet++;
+
+        updateWorkoutExercise();
+
+        startRestTimer(
+            exercise.rest
+        );
+
+    } else {
+
+        if (
+            activeWorkout.index <
+            activeWorkout.exercises.length - 1
+        ) {
+
+            activeWorkout.index++;
+            activeWorkout.currentSet = 1;
+
+            updateWorkoutExercise();
+
+            showToast(
+                "Exercise complete! Next one.",
+                "🔥"
+            );
+
+        } else {
+
+            finishWorkout();
+        }
+    }
+
+    checkAchievements();
+    updateAll();
+}
+
+
+function nextExercise() {
+
+    if (
+        activeWorkout.index >=
+        activeWorkout.exercises.length - 1
+    ) {
+
+        finishWorkout();
+
+        return;
+    }
+
+    activeWorkout.index++;
+    activeWorkout.currentSet = 1;
+
+    updateWorkoutExercise();
+}
+
+
+/* =========================================================
+   REST TIMER
+========================================================= */
+
+let restInterval = null;
+let restSeconds = 0;
+
+
+function startRestTimer(seconds) {
+
+    clearInterval(restInterval);
+
+    restSeconds =
+        Number(seconds) || 60;
+
+    updateRestTimer();
+
+
+    restInterval =
+        setInterval(() => {
+
+            restSeconds--;
+
+            updateRestTimer();
+
+
+            if (restSeconds <= 0) {
+
+                clearInterval(
+                    restInterval
+                );
+
+                showToast(
+                    "Rest complete. Get back in! 🔥",
+                    "⏱"
+                );
+
+                playNotificationSound();
+            }
+
+        }, 1000);
+}
+
+
+function updateRestTimer() {
+
+    const element =
+        $("#workoutRestTimer");
+
+    if (element) {
+
+        element.textContent =
+            restSeconds;
+    }
+}
+
+
+/* =========================================================
+   FINISH WORKOUT
+========================================================= */
+
+function finishWorkout() {
+
+    if (!activeWorkout.running) {
+        return;
+    }
+
+
+    activeWorkout.running = false;
+
+    stopWorkoutTimer();
+
+    clearInterval(
+        restInterval
+    );
+
+
+    const minutes =
+        Math.max(
+            1,
+            Math.round(
+                workoutElapsed / 60
+            )
+        );
+
+
+    const today =
+        ensureTodayHistory();
+
+
+    today.workoutMinutes += minutes;
+    today.workouts++;
+    today.sets +=
+        activeWorkout.setsCompleted;
+
+
+    state.workout.count++;
+    state.workout.totalMinutes +=
+        minutes;
+
+
+    state.workout.totalSets +=
+        activeWorkout.setsCompleted;
+
+
+    state.workout.longestWorkout =
+        Math.max(
+            state.workout.longestWorkout,
+            minutes
+        );
+
+
+    state.records.longestWorkout =
+        Math.max(
+            state.records.longestWorkout,
+            minutes
+        );
+
+
+    state.records.mostSets =
+        Math.max(
+            state.records.mostSets,
+            state.workout.totalSets
+        );
+
+
+    markActivity();
+
+    updateWorkoutStreak();
+
+    addXP(100);
+
+    checkAchievements();
+
+    saveState();
+
+    showToast(
+        `Workout complete! +100 XP 🔥`,
+        "🏆"
+    );
+
+    playNotificationSound();
+
+
+    activeWorkout.startTime =
+        null;
+
+    activeWorkout.running =
+        false;
+
+    workoutElapsed = 0;
+
+    updateAll();
+
+
+    setTimeout(() => {
+
+        showWorkoutPage(
+            "workout-dashboard"
+        );
+
+    }, 300);
+}
+
+
+/* =========================================================
+   WORKOUT STREAK
+========================================================= */
+
+function updateWorkoutStreak() {
+
+    const streak =
+        calculateStreak(
+            "workouts"
+        );
+
+    state.workout.streak =
+        streak;
+
+    state.workout.bestStreak =
+        Math.max(
+            state.workout.bestStreak,
+            streak
+        );
+
+    state.records.longestWorkoutStreak =
+        Math.max(
+            state.records.longestWorkoutStreak,
+            streak
+        );
+
+    saveState();
+}
+
+
+/* =========================================================
+   WORKOUT DASHBOARD
+========================================================= */
+
+function updateWorkoutDashboard() {
+
+    $("#workoutCount").textContent =
+        state.workout.count;
+
+    $("#totalWorkoutTime").textContent =
+        formatMinutes(
+            state.workout.totalMinutes
+        );
+
+    $("#totalSetsCompleted").textContent =
+        state.workout.totalSets;
+
+    $("#workoutStreak").textContent =
+        state.workout.streak;
+
+    $("#workoutRecords").textContent =
+        countRecords();
+
+    $("#analyticsWorkouts").textContent =
+        state.workout.count;
+
+    $("#analyticsWorkoutTime").textContent =
+        formatMinutes(
+            state.workout.totalMinutes
+        );
+
+    $("#analyticsWorkoutSets").textContent =
+        state.workout.totalSets;
+
+    $("#analyticsWorkoutStreak").textContent =
+        state.workout.bestStreak;
+
+    $("#longestWorkout").textContent =
+        `${state.records.longestWorkout} min`;
+
+    $("#mostSets").textContent =
+        state.records.mostSets;
+
+    $("#longestWorkoutStreak").textContent =
+        `${state.records.longestWorkoutStreak} days`;
+
+
+    renderTodayExercises();
+}
+
+
+function countRecords() {
+
+    let count = 0;
+
+    if (state.records.studyMinutes > 0) {
+        count++;
+    }
+
+    if (state.records.pomodoros > 0) {
+        count++;
+    }
+
+    if (state.records.longestWorkout > 0) {
+        count++;
+    }
+
+    if (state.records.mostSets > 0) {
+        count++;
+    }
+
+    if (
+        state.records.longestWorkoutStreak > 0
+    ) {
+        count++;
+    }
+
+    return count;
+}
+
+
+/* =========================================================
+   PERSONAL RECORD CELEBRATION
+========================================================= */
+
+function celebrateRecord(
+    title,
+    value,
+    message
+) {
+
+    $("#recordTitle").textContent =
+        title;
+
+    $("#recordValue").textContent =
+        value;
+
+    $("#recordMessage").textContent =
+        message;
+
+    $("#recordOverlay")
+        .classList.add("open");
+
+    $("#recordOverlay")
+        .setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+    createConfetti();
+}
+
+
+/* =========================================================
+   XP / LEVEL
+========================================================= */
+
+function xpRequired(level) {
+
+    return 100 + (
+        (level - 1) * 50
+    );
+}
+
+
+function addXP(amount) {
+
+    state.user.xp +=
+        Number(amount) || 0;
+
+
+    let required =
+        xpRequired(
+            state.user.level
+        );
+
+
+    while (
+        state.user.xp >= required
+    ) {
+
+        state.user.xp -= required;
+
+        state.user.level++;
+
+        required =
+            xpRequired(
+                state.user.level
+            );
+
+
+        showToast(
+            `LEVEL UP! You reached Level ${state.user.level}!`,
+            "🚀"
+        );
+
+        createConfetti();
+    }
+
+
+    updateXP();
+
+    saveState();
+}
+
+
+function updateXP() {
+
+    const level =
+        state.user.level;
+
+    const required =
+        xpRequired(level);
+
+    const percentage =
+        clamp(
+            (
+                state.user.xp /
+                required
+            ) * 100,
+            0,
+            100
+        );
+
+
+    $("#totalXP").textContent =
+        `${state.user.xp} XP`;
+
+    $("#profileLevel").textContent =
+        `Level ${level}`;
+
+    $("#xpProgress").style.width =
+        `${percentage}%`;
+}
+
+
+/* =========================================================
+   ACHIEVEMENTS
+========================================================= */
+
+const achievements = {
+
+    first-focus: {
+        title: "First Focus",
+        sticker: "📚",
+        description:
+            "Complete your first Pomodoro.",
+        xp: 50
+    },
+
+    focus-beast: {
+        title: "Focus Beast",
+        sticker: "🧠",
+        description:
+            "Complete 10 Pomodoros.",
+        xp: 100
+    },
+
+    grinder: {
+        title: "The Grinder",
+        sticker: "⚙️",
+        description:
+            "Complete 25 tasks.",
+        xp: 150
+    },
+
+    consistency: {
+        title: "Consistency King",
+        sticker: "🔥",
+        description:
+            "Build a 7 day activity streak.",
+        xp: 150
+    },
+
+    beast-mode: {
+        title: "Beast Mode",
+        sticker: "💪",
+        description:
+            "Complete your first workout.",
+        xp: 75
+    },
+
+    gym-monster: {
+        title: "Gym Monster",
+        sticker: "🏋️",
+        description:
+            "Complete 100 workout sets.",
+        xp: 200
+    },
+
+    speed-demon: {
+        title: "Speed Demon",
+        sticker: "⚡",
+        description:
+            "Finish a workout session.",
+        xp: 100
+    },
+
+    night-owl: {
+        title: "Night Owl",
+        sticker: "🦉",
+        description:
+            "Complete a focus session late at night.",
+        xp: 100
+    },
+
+    no-zero-days: {
+        title: "No Zero Days",
+        sticker: "🏆",
+        description:
+            "Reach a 14 day activity streak.",
+        xp: 300
+    }
+
+};
+
+
+function unlockAchievement(id) {
+
+    if (
+        state.achievements
+            .includes(id)
+    ) {
+        return;
+    }
+
+
+    const achievement =
+        achievements[id];
+
+    if (!achievement) return;
+
+
+    state.achievements.push(id);
+
+    addXP(
+        achievement.xp
+    );
+
+    saveState();
+
+
+    $("#unlockSticker").textContent =
+        achievement.sticker;
+
+    $("#unlockTitle").textContent =
+        achievement.title;
+
+    $("#unlockDescription").textContent =
+        achievement.description;
+
+    $("#unlockXP").textContent =
+        `+${achievement.xp} XP`;
+
+
+    $("#achievementOverlay")
+        .classList.add("open");
+
+    $("#achievementOverlay")
+        .setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+
+    createConfetti();
+
+    showToast(
+        `${achievement.title} unlocked!`,
+        "🏆"
+    );
+}
+
+
+function checkAchievements() {
+
+    const today =
+        ensureTodayHistory();
+
+
+    if (
+        today.pomodoros >= 1
+    ) {
+
+        unlockAchievement(
+            "first-focus"
+        );
+    }
+
+
+    if (
+        state.study.pomodoros >= 10
+    ) {
+
+        unlockAchievement(
+            "focus-beast"
+        );
+    }
+
+
+    if (
+        state.study.tasksCompleted >= 25
+    ) {
+
+        unlockAchievement(
+            "grinder"
+        );
+    }
+
+
+    const studyStreak =
+        calculateStreak(
+            "studyMinutes"
+        );
+
+
+    const workoutStreak =
+        calculateStreak(
+            "workouts"
+        );
+
+
+    const activityStreak =
+        Math.max(
+            studyStreak,
+            workoutStreak
+        );
+
+
+    if (
+        activityStreak >= 7
+    ) {
+
+        unlockAchievement(
+            "consistency"
+        );
+    }
+
+
+    if (
+        state.workout.count >= 1
+    ) {
+
+        unlockAchievement(
+            "beast-mode"
+        );
+
+        unlockAchievement(
+            "speed-demon"
+        );
+    }
+
+
+    if (
+        state.workout.totalSets >= 100
+    ) {
+
+        unlockAchievement(
+            "gym-monster"
+        );
+    }
+
+
+    if (
+        activityStreak >= 14
+    ) {
+
+        unlockAchievement(
+            "no-zero-days"
+        );
+    }
+
+
+    const hour =
+        new Date().getHours();
+
+
+    if (
+        hour >= 22 &&
+        today.pomodoros > 0
+    ) {
+
+        unlockAchievement(
+            "night-owl"
+        );
+    }
+}
+
+
+/* =========================================================
+   CONFETTI
+========================================================= */
+
+function createConfetti() {
+
+    const overlay =
+        $(".achievement-confetti");
+
+    if (!overlay) return;
+
+    overlay.innerHTML = "";
+
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        const piece =
+            document.createElement("span");
+
+        piece.style.position =
+            "absolute";
+
+        piece.style.width =
+            "7px";
+
+        piece.style.height =
+            "12px";
+
+        piece.style.left =
+            `${Math.random() * 100}%`;
+
+        piece.style.top =
+            "-20px";
+
+        piece.style.borderRadius =
+            "2px";
+
+        piece.style.background =
+            `hsl(${Math.random() * 360}, 80%, 60%)`;
+
+        piece.style.animation =
+            `confettiFall ${
+                1.2 +
+                Math.random() * 1.8
+            }s ease forwards`;
+
+        piece.style.animationDelay =
+            `${Math.random() * 0.4}s`;
+
+        overlay.appendChild(piece);
+    }
+}
+
+
+/* =========================================================
+   ACHIEVEMENT / RECORD CLOSE
+========================================================= */
+
+function closeAchievement() {
+
+    $("#achievementOverlay")
+        .classList.remove("open");
+
+    $("#achievementOverlay")
+        .setAttribute(
+            "aria-hidden",
+            "true"
+        );
+}
+
+
+function closeRecord() {
+
+    $("#recordOverlay")
+        .classList.remove("open");
+
+    $("#recordOverlay")
+        .setAttribute(
+            "aria-hidden",
+            "true"
+        );
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function openProfile() {
+
+    const panel =
+        $("#profilePanel");
+
+    panel.classList.add("open");
+
+    panel.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    updateProfile();
+}
+
+
+function closeProfile() {
+
+    const panel =
+        $("#profilePanel");
+
+    panel.classList.remove("open");
+
+    panel.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+function updateProfile() {
+
+    $("#profileName").textContent =
+        state.user.name;
+
+    $("#profileLevel").textContent =
+        `Level ${state.user.level}`;
+
+    $("#profileStudyHours").textContent =
+        `${(
+            state.study.totalMinutes /
+            60
+        ).toFixed(1)}h`;
+
+    $("#profileWorkouts").textContent =
+        state.workout.count;
+
+    $("#profileAchievements").textContent =
+        state.achievements.length;
+
+    $("#totalXP").textContent =
+        `${state.user.xp} XP`;
+
+    updateXP();
+
+
+    const badges =
+        $("#profileBadges");
+
+    if (!badges) return;
+
+
+    if (!state.achievements.length) {
+
+        badges.innerHTML = `
+            <span class="badge-placeholder">
+                🔒
+            </span>
+        `;
+
+        return;
+    }
+
+
+    badges.innerHTML =
+        state.achievements
+            .map(id => {
+
+                return `
+                    <span
+                        class="badge-placeholder"
+                        title="${
+                            achievements[id]?.title ||
+                            "Achievement"
+                        }"
+                    >
+                        ${
+                            achievements[id]?.sticker ||
+                            "🏆"
+                        }
+                    </span>
+                `;
+
+            })
+            .join("");
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function applyThemes() {
+
+    const study =
+        state.theme.study;
+
+    const workout =
+        state.theme.workout;
+
+
+    document.documentElement
+        .dataset.studyTheme =
+        study;
+
+    document.documentElement
+        .dataset.workoutTheme =
+        workout;
+}
+
+
+function toggleStudyTheme() {
+
+    state.theme.study =
+        state.theme.study === "light"
+            ? "dark"
+            : "light";
+
+    document.documentElement
+        .classList.toggle(
+            "study-dark",
+            state.theme.study === "dark"
+        );
+
+    saveState();
+
+    showToast(
+        `Study theme: ${state.theme.study}`,
+        "☀️"
+    );
+}
+
+
+function toggleWorkoutTheme() {
+
+    state.theme.workout =
+        state.theme.workout === "dark"
+            ? "light"
+            : "dark";
+
+    document.documentElement
+        .classList.toggle(
+            "workout-light",
+            state.theme.workout === "light"
+        );
+
+    saveState();
+
+    showToast(
+        `Workout theme: ${state.theme.workout}`,
+        "🌙"
+    );
+}
+
+
+/* =========================================================
+   DAILY GOALS
+========================================================= */
+
+function editStudyGoal() {
+
+    const value =
+        prompt(
+            "Daily study goal in minutes:",
+            state.goals.studyMinutes
+        );
+
+    if (value === null) return;
+
+    const number =
+        Number(value);
+
+    if (
+        !Number.isFinite(number) ||
+        number <= 0
+    ) {
+
+        showToast(
+            "Enter a valid number.",
+            "⚠️"
+        );
+
+        return;
+    }
+
+
+    state.goals.studyMinutes =
+        Math.round(number);
+
+    saveState();
+
+    updateStudyDashboard();
+}
+
+
+function editPomodoroGoal() {
+
+    const value =
+        prompt(
+            "Daily Pomodoro goal:",
+            state.goals.pomodoros
+        );
+
+    if (value === null) return;
+
+    const number =
+        Number(value);
+
+    if (
+        !Number.isFinite(number) ||
+        number <= 0
+    ) {
+        return;
+    }
+
+    state.goals.pomodoros =
+        Math.round(number);
+
+    saveState();
+
+    updateStudyDashboard();
+}
+
+
+function editTaskGoal() {
+
+    const value =
+        prompt(
+            "Daily task goal:",
+            state.goals.tasks
+        );
+
+    if (value === null) return;
+
+    const number =
+        Number(value);
+
+    if (
+        !Number.isFinite(number) ||
+        number <= 0
+    ) {
+        return;
+    }
+
+    state.goals.tasks =
+        Math.round(number);
+
+    saveState();
+
+    updateStudyDashboard();
+}
+
+
+/* =========================================================
+   ANALYTICS
+========================================================= */
+
+function updateAnalytics() {
+
+    const days =
+        Object.entries(
+            state.history
+        ).sort(
+            ([a], [b]) =>
+                a.localeCompare(b)
+        );
+
+
+    const totalStudy =
+        days.reduce(
+            (sum, [, day]) =>
+                sum +
+                (day.studyMinutes || 0),
+            0
+        );
+
+
+    const totalPomodoros =
+        days.reduce(
+            (sum, [, day]) =>
+                sum +
+                (day.pomodoros || 0),
+            0
+        );
+
+
+    const totalTasks =
+        days.reduce(
+            (sum, [, day]) =>
+                sum +
+                (day.tasksCompleted || 0),
+            0
+        );
+
+
+    $("#analyticsStudyTime").textContent =
+        formatMinutes(totalStudy);
+
+    $("#analyticsPomodoros").textContent =
+        totalPomodoros;
+
+
+    const totalCreated =
+        state.tasks.length;
+
+    const completion =
+        totalCreated > 0
+            ? Math.round(
+                (
+                    state.tasks.filter(
+                        task =>
+                            task.completed
+                    ).length /
+                    totalCreated
+                ) * 100
+            )
+            : 0;
+
+
+    $("#analyticsTasks").textContent =
+        `${completion}%`;
+
+    $("#taskCompletionRate").textContent =
+        `${completion}%`;
+
+
+    drawStudyChart();
+    renderAnalyticsSubjects();
+    updateBestStudyDay();
+}
+
+
+function drawStudyChart() {
+
+    const canvas =
+        $("#studyChart");
+
+    if (!canvas) return;
+
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const width =
+        Math.max(
+            300,
+            rect.width
+        );
+
+    const height = 300;
+
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+    canvas.width =
+        width * dpr;
+
+    canvas.height =
+        height * dpr;
+
+    canvas.style.height =
+        `${height}px`;
+
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.scale(
+        dpr,
+        dpr
+    );
+
+
+    const days = [];
+
+    for (
+        let i = 6;
+        i >= 0;
+        i--
+    ) {
+
+        const date =
+            new Date();
+
+        date.setDate(
+            date.getDate() - i
+        );
+
+        const key = [
+            date.getFullYear(),
+            String(
+                date.getMonth() + 1
+            ).padStart(2, "0"),
+            String(
+                date.getDate()
+            ).padStart(2, "0")
+        ].join("-");
+
+        days.push({
+            key,
+            value:
+                state.history[key]
+                    ?.studyMinutes || 0,
+            label:
+                date.toLocaleDateString(
+                    undefined,
+                    {
+                        weekday: "short"
+                    }
+                )
+        });
+    }
+
+
+    const max =
+        Math.max(
+            60,
+            ...days.map(
+                day => day.value
+            )
+        );
+
+
+    const padding = 35;
+
+    const chartWidth =
+        width - padding * 2;
+
+    const chartHeight =
+        height - 70;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    ctx.strokeStyle =
+        "#e5e7eb";
+
+    ctx.lineWidth = 1;
+
+
+    for (
+        let i = 0;
+        i <= 4;
+        i++
+    ) {
+
+        const y =
+            25 +
+            (chartHeight / 4) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            padding,
+            y
+        );
+
+        ctx.lineTo(
+            width - padding,
+            y
+        );
+
+        ctx.stroke();
+    }
+
+
+    ctx.beginPath();
+
+    days.forEach(
+        (day, index) => {
+
+            const x =
+                padding +
+                (
+                    chartWidth /
+                    Math.max(
+                        1,
+                        days.length - 1
+                    )
+                ) * index;
+
+            const y =
+                25 +
+                chartHeight -
+                (
+                    day.value /
+                    max
+                ) * chartHeight;
+
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+    );
+
+
+    ctx.strokeStyle =
+        "#6366f1";
+
+    ctx.lineWidth = 3;
+
+    ctx.stroke();
+
+
+    days.forEach(
+        (day, index) => {
+
+            const x =
+                padding +
+                (
+                    chartWidth /
+                    Math.max(
+                        1,
+                        days.length - 1
+                    )
+                ) * index;
+
+            const y =
+                25 +
+                chartHeight -
+                (
+                    day.value /
+                    max
+                ) * chartHeight;
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                5,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fillStyle =
+                "#6366f1";
+
+            ctx.fill();
+
+
+            ctx.fillStyle =
+                "#6b7280";
+
+            ctx.font =
+                "12px system-ui";
+
+            ctx.textAlign =
+                "center";
+
+            ctx.fillText(
+                day.label,
+                x,
+                height - 12
+            );
+        }
+    );
+}
+
+
+function renderAnalyticsSubjects() {
+
+    const container =
+        $("#analyticsSubjectList");
+
+    if (!container) return;
+
+
+    const totals = {};
+
+
+    Object.values(
+        state.history
+    ).forEach(day => {
+
+        if (!day.subjects) return;
+
+        Object.entries(
+            day.subjects
+        ).forEach(
+            ([subject, minutes]) => {
+
+                totals[subject] =
+                    (
+                        totals[subject] ||
+                        0
+                    ) + minutes;
+            }
+        );
+    });
+
+
+    const entries =
+        Object.entries(totals)
+            .sort(
+                ([, a], [, b]) =>
+                    b - a
+            );
+
+
+    if (!entries.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <span>📚</span>
+                <p>Start studying to see your breakdown.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        entries.map(
+            ([subject, minutes]) => {
+
+                return `
+                    <div class="review-list">
+                        <div>
+                            <span>
+                                ${escapeHTML(subject)}
+                            </span>
+
+                            <strong>
+                                ${formatMinutes(minutes)}
+                            </strong>
+                        </div>
+                    </div>
+                `;
+
+            }
+        ).join("");
+}
+
+
+function updateBestStudyDay() {
+
+    const entries =
+        Object.entries(
+            state.history
+        );
+
+
+    if (!entries.length) {
+        $("#bestStudyDay").textContent =
+            "—";
+        $("#topSubject").textContent =
+            "—";
+        return;
+    }
+
+
+    const best =
+        entries.reduce(
+            (best, current) =>
+                (current[1].studyMinutes || 0) >
+                (best[1].studyMinutes || 0)
+                    ? current
+                    : best
+        );
+
+
+    $("#bestStudyDay").textContent =
+        best[0];
+
+
+    const subjects = {};
+
+
+    entries.forEach(
+        ([, day]) => {
+
+            Object.entries(
+                day.subjects || {}
+            ).forEach(
+                ([subject, minutes]) => {
+
+                    subjects[subject] =
+                        (
+                            subjects[subject] ||
+                            0
+                        ) + minutes;
+                }
+            );
+        }
+    );
+
+
+    const top =
+        Object.entries(subjects)
+            .sort(
+                ([, a], [, b]) =>
+                    b - a
+            )[0];
+
+
+    $("#topSubject").textContent =
+        top
+            ? top[0]
+            : "—";
+}
+
+
+/* =========================================================
+   PROFILE / STATS UPDATE
+========================================================= */
+
+function updateAll() {
+
+    updateGreeting();
+
+    updateQuotes();
+
+    updateStudyDashboard();
+
+    updateWorkoutDashboard();
+
+    renderTasks();
+
+    renderSubjects();
+
+    renderExerciseLibrary();
+
+    updateAnalytics();
+
+    updateProfile();
+
+    updateXP();
+
+    updatePomodoroDisplay();
+
+    updateBreakTimer();
+
+    updateWorkoutTimerDisplay();
+
+    applyThemes();
+}
+
+
+/* =========================================================
+   NOTIFICATION SOUND
+========================================================= */
+
+function playNotificationSound() {
+
+    try {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContext) return;
+
+        const audio =
+            new AudioContext();
+
+        const oscillator =
+            audio.createOscillator();
+
+        const gain =
+            audio.createGain();
+
+
+        oscillator.type =
+            "sine";
+
+        oscillator.frequency.value =
+            880;
+
+        gain.gain.setValueAtTime(
+            0.001,
+            audio.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.15,
+            audio.currentTime + 0.02
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audio.currentTime + 0.4
+        );
+
+
+        oscillator.connect(gain);
+
+        gain.connect(
+            audio.destination
+        );
+
+        oscillator.start();
+
+        oscillator.stop(
+            audio.currentTime + 0.4
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Notification sound unavailable."
+        );
+    }
+}
+
+
+/* =========================================================
+   EVENT LISTENERS
+========================================================= */
+
+
+/* MODE SELECTION */
+
+$("#enterStudyMode")
+    ?.addEventListener(
+        "click",
+        enterStudyMode
+    );
+
+
+$("#enterWorkoutMode")
+    ?.addEventListener(
+        "click",
+        enterWorkoutMode
+    );
+
+
+$("#studyBackButton")
+    ?.addEventListener(
+        "click",
+        returnToModes
+    );
+
+
+$("#workoutBackButton")
+    ?.addEventListener(
+        "click",
+        returnToModes
+    );
+
+
+/* STUDY NAV */
+
+$$("[data-study-page]")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    button.dataset.studyPage;
+
+                if (!page) return;
+
+                showStudyPage(page);
+            }
+        );
+    });
+
+
+/* WORKOUT NAV */
+
+$$("[data-workout-page]")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    button.dataset.workoutPage;
+
+                if (!page) return;
+
+                showWorkoutPage(page);
+            }
+        );
+    });
+
+
+/* PROFILE */
+
+$("#studyProfileButton")
+    ?.addEventListener(
+        "click",
+        openProfile
+    );
+
+
+$("#workoutProfileButton")
+    ?.addEventListener(
+        "click",
+        openProfile
+    );
+
+
+$("#closeProfile")
+    ?.addEventListener(
+        "click",
+        closeProfile
+    );
+
+
+/* THEMES */
+
+$("#studyThemeToggle")
+    ?.addEventListener(
+        "click",
+        toggleStudyTheme
+    );
+
+
+$("#workoutThemeToggle")
+    ?.addEventListener(
+        "click",
+        toggleWorkoutTheme
+    );
+
+
+/* STUDY TIMER */
+
+$("#startPomodoro")
+    ?.addEventListener(
+        "click",
+        startPomodoro
+    );
+
+
+$("#pausePomodoro")
+    ?.addEventListener(
+        "click",
+        pausePomodoro
+    );
+
+
+$("#resetPomodoro")
+    ?.addEventListener(
+        "click",
+        resetPomodoro
+    );
+
+
+$("#startMiniPomodoro")
+    ?.addEventListener(
+        "click",
+        startMiniPomodoro
+    );
+
+
+$("#subjectSelect")
+    ?.addEventListener(
+        "change",
+        updateTimerSubject
+    );
+
+
+$$(".timer-preset")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                setPomodoroPreset(
+                    button.dataset.focus,
+                    button.dataset.break
+                );
+            }
+        );
+    });
+
+
+/* TASKS */
+
+$("#addTaskButton")
+    ?.addEventListener(
+        "click",
+        openTaskModal
+    );
+
+
+$("#closeTaskModal")
+    ?.addEventListener(
+        "click",
+        closeTaskModal
+    );
+
+
+$("#taskForm")
+    ?.addEventListener(
+        "submit",
+        createTask
+    );
+
+
+$("#taskSort")
+    ?.addEventListener(
+        "change",
+        renderTasks
+    );
+
+
+$$(".filter-btn")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                currentTaskFilter =
+                    button.dataset.filter;
+
+                $$(".filter-btn")
+                    .forEach(
+                        item =>
+                            item.classList.toggle(
+                                "active",
+                                item === button
+                            )
+                    );
+
+                renderTasks();
+            }
+        );
+    });
+
+
+/* SUBJECTS */
+
+$("#addSubject")
+    ?.addEventListener(
+        "click",
+        addSubject
+    );
+
+
+$("#addSubjectFromSubjects")
+    ?.addEventListener(
+        "click",
+        addSubject
+    );
+
+
+/* MUSIC */
+
+$("#musicPlay")
+    ?.addEventListener(
+        "click",
+        toggleMusic
+    );
+
+
+$("#previousTrack")
+    ?.addEventListener(
+        "click",
+        () => changeTrack(-1)
+    );
+
+
+$("#nextTrack")
+    ?.addEventListener(
+        "click",
+        () => changeTrack(1)
+    );
+
+
+$("#musicVolume")
+    ?.addEventListener(
+        "input",
+        event => {
+
+            state.music.volume =
+                Number(
+                    event.target.value
+                );
+
+            saveState();
+        }
+    );
+
+
+$$(".sound-option")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                selectSound(
+                    button.dataset.sound
+                );
+            }
+        );
+    });
+
+
+/* FOCUS MODE */
+
+$("#focusModeButton")
+    ?.addEventListener(
+        "click",
+        openFocusMode
+    );
+
+
+$("#exitFocusMode")
+    ?.addEventListener(
+        "click",
+        closeFocusMode
+    );
+
+
+/* BREAK */
+
+$$(".break-card")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const type =
+                    button.dataset.break;
+
+                if (
+                    type === "game"
+                ) {
+
+                    openBreakGame();
+
+                } else {
+
+                    startBreakActivity(
+                        type
+                    );
+                }
+            }
+        );
+    });
+
+
+/* WORKOUT PLANS */
+
+$$(".workout-plan-option")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                selectWorkoutPlan(
+                    button.dataset.plan
+                );
+            }
+        );
+    });
+
+
+/* WORKOUT */
+
+$("#startWorkout")
+    ?.addEventListener(
+        "click",
+        startWorkout
+    );
+
+
+$("#completeSet")
+    ?.addEventListener(
+        "click",
+        completeSet
+    );
+
+
+$("#startRest")
+    ?.addEventListener(
+        "click",
+        () => {
+
+            const id =
+                activeWorkout.exercises[
+                    activeWorkout.index
+                ];
+
+            const exercise =
+                getExercise(id);
+
+            startRestTimer(
+                exercise?.rest || 60
+            );
+        }
+    );
+
+
+$("#nextExercise")
+    ?.addEventListener(
+        "click",
+        nextExercise
+    );
+
+
+/* EXERCISE SEARCH */
+
+$("#exerciseSearch")
+    ?.addEventListener(
+        "input",
+        event => {
+
+            renderExerciseLibrary(
+                event.target.value
+            );
+        }
+    );
+
+
+/* EXERCISE MODAL */
+
+$("#closeExerciseModal")
+    ?.addEventListener(
+        "click",
+        closeExerciseModal
+    );
+
+
+$("#addExerciseToWorkout")
+    ?.addEventListener(
+        "click",
+        addSelectedExerciseToWorkout
+    );
+
+
+/* ACHIEVEMENT */
+
+$("#closeAchievement")
+    ?.addEventListener(
+        "click",
+        closeAchievement
+    );
+
+
+$("#achievementContinue")
+    ?.addEventListener(
+        "click",
+        closeAchievement
+    );
+
+
+/* RECORD */
+
+$("#closeRecord")
+    ?.addEventListener(
+        "click",
+        closeRecord
+    );
+
+
+/* GAMES */
+
+$("#closeBreakGame")
+    ?.addEventListener(
+        "click",
+        closeBreakGame
+    );
+
+
+$("#closeGame")
+    ?.addEventListener(
+        "click",
+        closeBreakGame
+    );
+
+
+$("#startGame")
+    ?.addEventListener(
+        "click",
+        startCurrentGame
+    );
+
+
+/* =========================================================
+   EVENT DELEGATION
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const completeButton =
+            event.target.closest(
+                "[data-complete-task]"
+            );
+
+        if (completeButton) {
+
+            completeTask(
+                completeButton.dataset.completeTask
+            );
+
+            return;
+        }
+
+
+        const focusButton =
+            event.target.closest(
+                "[data-focus-task]"
+            );
+
+        if (focusButton) {
+
+            focusTask(
+                focusButton.dataset.focusTask
+            );
+
+            return;
+        }
+
+
+        const exerciseButton =
+            event.target.closest(
+                "[data-exercise]"
+            );
+
+        if (exerciseButton) {
+
+            openExerciseModal(
+                exerciseButton.dataset.exercise
+            );
+
+            return;
+        }
+    }
+);
+
+
+/* =========================================================
+   BREAK ACTIVITIES
+========================================================= */
+
+function startBreakActivity(type) {
+
+    startBreakTimer();
+
+    const messages = {
+
+        breathing:
+            "Breathe slowly. In for 4 seconds, out for 6.",
+
+        stretch:
+            "Stand up, roll your shoulders, and stretch.",
+
+        eye:
+            "Look at something 20 feet away for 20 seconds."
+    };
+
+
+    const message =
+        messages[type] ||
+        "Take a proper break.";
+
+
+    showToast(
+        message,
+        type === "breathing"
+            ? "🌿"
+            : type === "stretch"
+                ? "🧘"
+                : "👁"
+    );
+}
+
+
+/* =========================================================
+   QUICK BREAK GAME
+========================================================= */
+
+let currentGame = "reaction";
+let reactionStart = 0;
+
+
+function openBreakGame() {
+
+    $("#breakGameModal")
+        .classList.add("open");
+
+    $("#breakGameModal")
+        .setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+    currentGame =
+        ["reaction", "math", "word"][
+            Math.floor(
+                Math.random() * 3
+            )
+        ];
+
+    $("#breakGameTitle").textContent =
+        gameTitle(currentGame);
+
+    $("#gameResult").textContent = "";
+
+    $("#gameArea").innerHTML = `
+        <button
+            id="startGame"
+            class="primary-button"
+            type="button"
+        >
+            Start Game
+        </button>
+    `;
+
+    $("#startGame")
+        .addEventListener(
+            "click",
+            startCurrentGame
+        );
+}
+
+
+function gameTitle(game) {
+
+    const titles = {
+
+        reaction:
+            "Reaction Test",
+
+        math:
+            "Quick Math",
+
+        word:
+            "Word Scramble"
+    };
+
+    return titles[game] ||
+        "Quick Game";
+}
+
+
+function startCurrentGame() {
+
+    if (
+        currentGame ===
+        "reaction"
+    ) {
+
+        startReactionGame();
+
+    } else if (
+        currentGame ===
+        "math"
+    ) {
+
+        startMathGame();
+
+    } else {
+
+        startWordGame();
+    }
+}
+
+
+function startReactionGame() {
+
+    const area =
+        $("#gameArea");
+
+    area.innerHTML = `
+        <button
+            id="reactionTarget"
+            style="
+                width:150px;
+                height:150px;
+                border-radius:50%;
+                background:#6366f1;
+                color:white;
+                font-weight:800;
+            "
+            type="button"
+        >
+            WAIT...
+        </button>
+    `;
+
+
+    const delay =
+        1000 +
+        Math.random() * 2500;
+
+
+    setTimeout(() => {
+
+        const target =
+            $("#reactionTarget");
+
+        if (!target) return;
+
+        target.textContent =
+            "CLICK!";
+
+        target.style.background =
+            "#16a34a";
+
+        reactionStart =
+            performance.now();
+
+        target.addEventListener(
+            "click",
+            () => {
+
+                const time =
+                    Math.round(
+                        performance.now() -
+                        reactionStart
+                    );
+
+                $("#gameResult").textContent =
+                    `${time} ms — Nice reaction!`;
+
+                addXP(10);
+
+                showToast(
+                    `Reaction test: ${time}ms`,
+                    "⚡"
+                );
+            },
+            {
+                once: true
+            }
+        );
+
+    }, delay);
+}
+
+
+function startMathGame() {
+
+    const a =
+        Math.floor(
+            Math.random() * 20
+        ) + 5;
+
+    const b =
+        Math.floor(
+            Math.random() * 20
+        ) + 5;
+
+    const answer =
+        a + b;
+
+
+    $("#gameArea").innerHTML = `
+
+        <div style="text-align:center">
+
+            <h2>
+                ${a} + ${b} = ?
+            </h2>
+
+            <input
+                id="mathAnswer"
+                type="number"
+                placeholder="Answer"
+                style="
+                    margin:15px 0;
+                    max-width:180px;
+                "
+            >
+
+            <button
+                id="mathSubmit"
+                class="primary-button"
+                type="button"
+            >
+                Check
+            </button>
+
+        </div>
+    `;
+
+
+    $("#mathSubmit")
+        .addEventListener(
+            "click",
+            () => {
+
+                const userAnswer =
+                    Number(
+                        $("#mathAnswer").value
+                    );
+
+                if (
+                    userAnswer === answer
+                ) {
+
+                    $("#gameResult")
+                        .textContent =
+                        "Correct! 🧠 +10 XP";
+
+                    addXP(10);
+
+                } else {
+
+                    $("#gameResult")
+                        .textContent =
+                        `Not quite. Answer: ${answer}`;
+                }
+            }
+        );
+}
+
+
+function startWordGame() {
+
+    const words = [
+        "FOCUS",
+        "ENERGY",
+        "STUDY",
+        "MOTION",
+        "STRENGTH",
+        "DISCIPLINE"
+    ];
+
+
+    const word =
+        words[
+            Math.floor(
+                Math.random() *
+                words.length
+            )
+        ];
+
+
+    const scrambled =
+        word
+            .split("")
+            .sort(
+                () =>
+                    Math.random() - 0.5
+            )
+            .join("");
+
+
+    $("#gameArea").innerHTML = `
+
+        <div style="text-align:center">
+
+            <h2>
+                ${scrambled}
+            </h2>
+
+            <input
+                id="wordAnswer"
+                type="text"
+                placeholder="Unscramble it"
+                style="
+                    margin:15px 0;
+                    max-width:220px;
+                "
+            >
+
+            <button
+                id="wordSubmit"
+                class="primary-button"
+                type="button"
+            >
+                Check
+            </button>
+
+        </div>
+    `;
+
+
+    $("#wordSubmit")
+        .addEventListener(
+            "click",
+            () => {
+
+                const answer =
+                    $("#wordAnswer")
+                        .value
+                        .trim()
+                        .toUpperCase();
+
+
+                if (
+                    answer === word
+                ) {
+
+                    $("#gameResult")
+                        .textContent =
+                        "Correct! 🧠 +10 XP";
+
+                    addXP(10);
+
+                } else {
+
+                    $("#gameResult")
+                        .textContent =
+                        "Try again!";
+                }
+            }
+        );
+}
+
+
+function closeBreakGame() {
+
+    $("#breakGameModal")
+        .classList.remove("open");
+
+    $("#breakGameModal")
+        .setAttribute(
+            "aria-hidden",
+            "true"
+        );
+}
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            closeTaskModal();
+            closeExerciseModal();
+            closeAchievement();
+            closeRecord();
+            closeBreakGame();
+            closeFocusMode();
+            closeProfile();
+        }
+
+
+        if (
+            event.code === "Space" &&
+            !["INPUT", "TEXTAREA", "SELECT"]
+                .includes(
+                    document.activeElement?.tagName
+                )
+        ) {
+
+            event.preventDefault();
+
+            if (
+                state.currentMode ===
+                "study"
+            ) {
+
+                if (
+                    pomodoro.running
+                ) {
+                    pausePomodoro();
+                } else {
+                    startPomodoro();
+                }
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   CLOSE MODALS WHEN CLICKING BACKDROP
+========================================================= */
+
+$$(".modal-overlay")
+    .forEach(overlay => {
+
+        overlay.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target !==
+                    overlay
+                ) {
+                    return;
+                }
+
+                overlay.classList.remove(
+                    "open"
+                );
+
+                overlay.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+            }
+        );
+    });
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        if (
+            state.currentMode ===
+            "study"
+        ) {
+
+            drawStudyChart();
+        }
+    }
+);
+
+
+/* =========================================================
+   MODE CARD CURSOR EFFECT
+========================================================= */
+
+$$(".mode-card")
+    .forEach(card => {
+
+        card.addEventListener(
+            "mousemove",
+            event => {
+
+                const rect =
+                    card.getBoundingClientRect();
+
+                const x =
+                    event.clientX -
+                    rect.left;
+
+                const y =
+                    event.clientY -
+                    rect.top;
+
+
+                const rotateX =
+                    (
+                        y -
+                        rect.height / 2
+                    ) /
+                    25;
+
+
+                const rotateY =
+                    (
+                        rect.width / 2 -
+                        x
+                    ) /
+                    25;
+
+
+                card.style.transform =
+                    `
+                    translateY(-12px)
+                    scale(1.025)
+                    rotateX(${rotateX}deg)
+                    rotateY(${rotateY}deg)
+                    `;
+            }
+        );
+
+
+        card.addEventListener(
+            "mouseleave",
+            () => {
+
+                card.style.transform =
+                    "";
+            }
+        );
+    });
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+function initializeApp() {
+
+    ensureTodayHistory();
+
+    applyThemes();
+
+    updateAll();
+
+    updateMusicButton();
+
+    updatePomodoroDisplay();
+
+
+    /* Default state */
+
+    $("#modeSelection").style.display =
+        "block";
+
+    $("#studyApp")
+        .classList.remove("active");
+
+    $("#workoutApp")
+        .classList.remove("active");
+
+
+    /*
+       Always start on mode selection.
+       The user explicitly chooses their mode.
+    */
+
+    state.currentMode =
+        "selection";
+
+    saveState();
+
+
+    console.log(
+        "FOCUS initialized successfully."
+    );
+}
+
+
+initializeApp();
+
+
+/* =========================================================
+   EXTRA CSS ANIMATION
+   Injected because confetti needs keyframes.
+========================================================= */
+
+const animationStyle =
+    document.createElement("style");
+
+animationStyle.textContent = `
+
+@keyframes confettiFall {
+
     0% {
-        transform: scale(0.3) rotate(-15deg);
-    }
-
-    60% {
-        transform: scale(1.15) rotate(5deg);
-    }
-
-    80% {
-        transform: scale(0.95) rotate(-2deg);
+        transform:
+            translateY(-20px)
+            rotate(0deg);
+        opacity: 1;
     }
 
     100% {
-        transform: scale(1) rotate(0);
-    }
-}
-
-@keyframes toastIn {
-    from {
+        transform:
+            translateY(500px)
+            rotate(720deg);
         opacity: 0;
-        transform: translateX(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
     }
 }
 
-@keyframes toastOut {
-    to {
-        opacity: 0;
-        transform: translateX(30px);
-    }
+.overdue {
+    color: #ef4444 !important;
+    font-weight: 800;
 }
 
-
-/* =========================================================
-   RESPONSIVE — TABLET
-========================================================= */
-
-@media (max-width: 900px) {
-
-    .mode-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .mode-card {
-        min-height: 320px;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .goal-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .dashboard-columns {
-        grid-template-columns: 1fr;
-    }
-
-    .focus-layout,
-    .workout-session-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .break-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .subject-grid,
-    .workout-plan-grid,
-    .exercise-library {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .sound-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .exercise-preview-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .analytics-columns {
-        grid-template-columns: 1fr;
-    }
-
-    .music-player {
-        grid-template-columns: auto 1fr;
-    }
-
-    .music-controls,
-    .volume-control {
-        grid-column: span 1;
-    }
+.study-dark .study-environment {
+    --study-bg: #0d0f14;
+    --study-surface: #151821;
+    --study-surface-soft: #1b1f2a;
+    --study-border: rgba(255,255,255,.09);
+    --study-text: #f5f7fb;
+    --study-muted: #9da4b4;
 }
 
-
-/* =========================================================
-   RESPONSIVE — MOBILE
-========================================================= */
-
-@media (max-width: 620px) {
-
-    .mode-content {
-        width: min(100% - 24px, 520px);
-        padding: 35px 0 25px;
-    }
-
-    .brand-area {
-        margin-bottom: 35px;
-    }
-
-    .mode-heading {
-        margin-bottom: 25px;
-    }
-
-    .mode-heading h2 {
-        font-size: 2.25rem;
-    }
-
-    .mode-card {
-        min-height: 300px;
-        padding: 25px;
-        border-radius: 24px;
-    }
-
-    .mode-card h3 {
-        font-size: 1.65rem;
-    }
-
-    .mode-icon-wrapper {
-        width: 65px;
-        height: 65px;
-    }
-
-    .mode-icon {
-        font-size: 30px;
-    }
-
-    .mode-card-content {
-        margin-top: 24px;
-    }
-
-    .mode-footer {
-        display: none;
-    }
-
-    .app-header {
-        height: 64px;
-        padding: 0 15px;
-    }
-
-    .app-brand {
-        font-size: 0.8rem;
-    }
-
-    .mode-navigation {
-        top: 64px;
-
-        justify-content: flex-start;
-
-        overflow-x: auto;
-
-        padding: 8px 12px;
-    }
-
-    .nav-item {
-        flex: 0 0 auto;
-        padding: 9px 12px;
-    }
-
-    .nav-item span:last-child {
-        display: none;
-    }
-
-    .app-content {
-        width: min(100% - 24px, 600px);
-        padding-top: 35px;
-    }
-
-    .page-heading {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 18px;
-    }
-
-    .page-heading h1 {
-        font-size: 2rem;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .stat-card {
-        padding: 15px;
-        gap: 10px;
-    }
-
-    .stat-icon {
-        width: 38px;
-        height: 38px;
-    }
-
-    .dashboard-panel {
-        padding: 18px;
-    }
-
-    .pomodoro-timer {
-        font-size: 5rem;
-    }
-
-    .focus-timer-card {
-        min-height: 430px;
-        padding: 25px 15px;
-    }
-
-    .timer-controls {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .break-grid,
-    .subject-grid,
-    .workout-plan-grid,
-    .exercise-library,
-    .sound-grid,
-    .exercise-preview-grid,
-    .records-grid,
-    .analytics-stat-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .featured-workout {
-        padding: 25px;
-        min-height: 240px;
-    }
-
-    .featured-workout-icon {
-        position: absolute;
-        right: -10px;
-        opacity: 0.35;
-    }
-
-    .exercise-demo {
-        min-height: 230px;
-    }
-
-    .exercise-demo-placeholder {
-        font-size: 6rem;
-    }
-
-    .exercise-meta {
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-
-    .music-player {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-
-    .music-cover {
-        margin: auto;
-    }
-
-    .music-controls,
-    .volume-control {
-        justify-content: center;
-    }
-
-    .task-toolbar {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .profile-panel {
-        width: 100%;
-    }
+.workout-light .workout-environment {
+    --workout-bg: #f5f6f8;
+    --workout-surface: #ffffff;
+    --workout-surface-2: #eef0f3;
+    --workout-border: #dfe2e7;
+    --workout-text: #17191e;
+    --workout-muted: #69707d;
 }
 
+`;
 
-/* =========================================================
-   SMALL PHONES
-========================================================= */
-
-@media (max-width: 420px) {
-
-    .stats-grid,
-    .break-grid,
-    .subject-grid,
-    .workout-plan-grid,
-    .exercise-library,
-    .sound-grid,
-    .exercise-preview-grid,
-    .records-grid,
-    .analytics-stat-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .mode-card {
-        min-height: 285px;
-    }
-
-    .mode-features {
-        display: none;
-    }
-
-    .mode-arrow {
-        right: 20px;
-        bottom: 20px;
-    }
-
-    .daily-streak {
-        width: 100%;
-    }
-
-    .timer-controls {
-        width: 100%;
-    }
-
-    .timer-controls button {
-        flex: 1;
-    }
-
-    .exercise-meta {
-        grid-template-columns: 1fr;
-    }
-
-    .quote-card {
-        padding: 25px;
-    }
-}
-
-
-/* =========================================================
-   ACCESSIBILITY
-========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-
-/* =========================================================
-   CUSTOM SCROLLBAR
-========================================================= */
-
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #b9bdc7;
-    border-radius: 99px;
-}
-
-.workout-environment::-webkit-scrollbar-thumb {
-    background: #343741;
-}
+document.head.appendChild(
+    animationStyle
+);
 ```
